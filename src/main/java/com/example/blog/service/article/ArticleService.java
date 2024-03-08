@@ -1,20 +1,19 @@
 package com.example.blog.service.article;
 
+import com.example.blog.repository.article.ArticleRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ArticleService {
 
+    private final ArticleRepository articleRepository;
+
     public Optional<ArticleEntity> findById(long id) {
-        return Optional.of(new ArticleEntity(
-                id,
-                "title",
-                "content",
-                LocalDateTime.now(),
-                LocalDateTime.now()
-        ));
+        return articleRepository.selectById(id);
     }
 }
