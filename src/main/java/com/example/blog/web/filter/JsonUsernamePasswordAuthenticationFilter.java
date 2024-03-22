@@ -15,6 +15,12 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
     public JsonUsernamePasswordAuthenticationFilter(SecurityContextRepository securityContextRepository) {
         super();
         setSecurityContextRepository(securityContextRepository);
+        setAuthenticationSuccessHandler((req, res, auth) -> {
+            res.setStatus(HttpServletResponse.SC_OK);
+        });
+        setAuthenticationFailureHandler((req, res, auth) -> {
+            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        });
     }
 
     @Override
