@@ -12,16 +12,25 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            SecurityContextRepository securityContextRepository
+    ) throws Exception {
         http
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/login"))
-                .addFilterAt(new JsonUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterAt(
+                        new JsonUsernamePasswordAuthenticationFilter(securityContextRepository),
+                        UsernamePasswordAuthenticationFilter.class
+                )
+                .securityContext(context -> context.securityContextRepository(securityContextRepository))
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/articles/**").permitAll()
                         .anyRequest().authenticated()
@@ -29,6 +38,11 @@ public class SecurityConfig {
                 .formLogin(Customizer.withDefaults());
 
         return http.build();
+    }
+
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
     }
 
     @Bean
