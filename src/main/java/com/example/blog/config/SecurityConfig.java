@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.ChangeSessionIdAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 
@@ -22,12 +24,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            SecurityContextRepository securityContextRepository
+            SecurityContextRepository securityContextRepository,
+            SessionAuthenticationStrategy sessionAuthenticationStrategy
     ) throws Exception {
         http
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/login"))
                 .addFilterAt(
-                        new JsonUsernamePasswordAuthenticationFilter(securityContextRepository),
+                        new JsonUsernamePasswordAuthenticationFilter(
+                                securityContextRepository,
+                                sessionAuthenticationStrategy
+                        ),
                         UsernamePasswordAuthenticationFilter.class
                 )
                 .securityContext(context -> context.securityContextRepository(securityContextRepository))
@@ -38,6 +44,11 @@ public class SecurityConfig {
                 .formLogin(Customizer.withDefaults());
 
         return http.build();
+    }
+
+    @Bean
+    public SessionAuthenticationStrategy sessionAuthenticationStrategy() {
+        return new ChangeSessionIdAuthenticationStrategy();
     }
 
     @Bean

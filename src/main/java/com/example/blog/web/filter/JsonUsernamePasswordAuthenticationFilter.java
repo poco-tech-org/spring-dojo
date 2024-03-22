@@ -6,15 +6,20 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.SecurityContextRepository;
 
 import java.util.List;
 
 public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    public JsonUsernamePasswordAuthenticationFilter(SecurityContextRepository securityContextRepository) {
+    public JsonUsernamePasswordAuthenticationFilter(
+            SecurityContextRepository securityContextRepository,
+            SessionAuthenticationStrategy sessionAuthenticationStrategy
+    ) {
         super();
         setSecurityContextRepository(securityContextRepository);
+        setSessionAuthenticationStrategy(sessionAuthenticationStrategy);
         setAuthenticationSuccessHandler((req, res, auth) -> {
             res.setStatus(HttpServletResponse.SC_OK);
         });
