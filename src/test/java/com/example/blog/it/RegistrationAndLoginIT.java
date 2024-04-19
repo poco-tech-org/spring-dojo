@@ -17,6 +17,24 @@ public class RegistrationAndLoginIT {
 
     @Test
     public void integrationTest() {
+        //ユーザー作成
+        var xsrfToken = getRoot();
+
+        //ログイン失敗
+        //Cookie に XSRF-TOKEN がない
+        //ヘッダーに X-XSRF-TOKEN がない
+        //Cookie の XSRF-TOKEN とヘッダーの X-XSRF-TOKEN の値が異なる
+        //ユーザー名が存在しない
+        //パスワードがデータベースに保存されているパスワードと違う
+        //ログイン成功
+        //ユーザー名がデータベースに存在する
+        //パスワードがデータベースに保存されているパスワードと違う
+        //Cookie の XSRF-TOKEN とヘッダーの X-XSRF-TOKEN の値が一致する
+        //→ 200 OK が返る
+        //→ レスポンスに Set-Cookie: JSESSIONID が返ってくる
+    }
+
+    private String getRoot() {
         // ## Arrange ##
 
         // ## Act ##
@@ -32,5 +50,7 @@ public class RegistrationAndLoginIT {
                 .hasValueSatisfying(xsrfTokenCookie ->
                         assertThat(xsrfTokenCookie.getValue()).isNotBlank()
                 );
+
+        return xsrfTokenOpt.get().getValue();
     }
 }
