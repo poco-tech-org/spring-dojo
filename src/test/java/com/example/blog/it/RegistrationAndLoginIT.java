@@ -3,6 +3,7 @@ package com.example.blog.it;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.Optional;
@@ -19,6 +20,7 @@ public class RegistrationAndLoginIT {
     public void integrationTest() {
         //ユーザー作成
         var xsrfToken = getRoot();
+        register(xsrfToken);
 
         //ログイン失敗
         //Cookie に XSRF-TOKEN がない
@@ -52,5 +54,27 @@ public class RegistrationAndLoginIT {
                 );
 
         return xsrfTokenOpt.get().getValue();
+    }
+
+    private void register(String xsrfToken) {
+        // ## Arrange ##
+        var bodyJson = """
+                {
+                  "username": "user1",
+                  "password": "password1"
+                }
+                """;
+
+        // ## Act ##
+        var responseSpec = webTestClient
+                .post().uri("/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .cookie("XSRF-TOKEN", xsrfToken)
+                .header("X-XSRF-TOKEN", xsrfToken)
+                .bodyValue(bodyJson)
+                .exchange();
+
+        // ## Assert ##
+        responseSpec.expectStatus().isCreated();
     }
 }
