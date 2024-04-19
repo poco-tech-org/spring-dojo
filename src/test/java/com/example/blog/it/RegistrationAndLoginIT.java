@@ -13,6 +13,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RegistrationAndLoginIT {
 
+    private final String TEST_USERNAME = "user1";
+    private final String TEST_PASSWORD = "password1";
+
     @Autowired
     private WebTestClient webTestClient;
 
@@ -58,12 +61,12 @@ public class RegistrationAndLoginIT {
 
     private void register(String xsrfToken) {
         // ## Arrange ##
-        var bodyJson = """
+        var bodyJson = String.format("""
                 {
-                  "username": "user1",
-                  "password": "password1"
+                  "username": "%s",
+                  "password": "%s"
                 }
-                """;
+                """, TEST_USERNAME, TEST_PASSWORD);
 
         // ## Act ##
         var responseSpec = webTestClient
