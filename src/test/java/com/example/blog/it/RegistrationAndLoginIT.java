@@ -45,8 +45,11 @@ public class RegistrationAndLoginIT {
         // Cookie に XSRF-TOKEN がない
         loginFailure_NoXSRFTokenInCookie(xsrfToken);
 
-        //ヘッダーに X-XSRF-TOKEN がない
-        //Cookie の XSRF-TOKEN とヘッダーの X-XSRF-TOKEN の値が異なる
+        // ヘッダーに X-XSRF-TOKEN がない
+        loginFailure_NoXXSRFTokenInHeader(xsrfToken);
+
+        // Cookie の XSRF-TOKEN とヘッダーの X-XSRF-TOKEN の値が異なる
+        loginFailure_DifferentToken(xsrfToken);
         //ユーザー名が存在しない
         //パスワードがデータベースに保存されているパスワードと違う
 
@@ -147,6 +150,54 @@ public class RegistrationAndLoginIT {
                 */
                 .cookie("JSESSIONID", DUMMY_SESSION_ID)
                 .header("X-XSRF-TOKEN", xsrfToken)
+                .bodyValue(bodyJson)
+                .exchange();
+
+        // ## Assert ##
+        responseSpec.expectStatus().isForbidden();
+    }
+
+    private void loginFailure_NoXXSRFTokenInHeader(String xsrfToken) {
+        // ## Arrange ##
+        var bodyJson = String.format("""
+                {
+                  "username": "%s",
+                  "password": "%s"
+                }
+                """, TEST_USERNAME, TEST_PASSWORD);
+
+        // ## Act ##
+        var responseSpec = webTestClient
+                .post().uri("/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .cookie("XSRF-TOKEN", xsrfToken)
+                .cookie("JSESSIONID", DUMMY_SESSION_ID)
+                /*
+                .header("X-XSRF-TOKEN", xsrfToken)
+                 */
+                .bodyValue(bodyJson)
+                .exchange();
+
+        // ## Assert ##
+        responseSpec.expectStatus().isForbidden();
+    }
+
+    private void loginFailure_DifferentToken(String xsrfToken) {
+        // ## Arrange ##
+        var bodyJson = String.format("""
+                {
+                  "username": "%s",
+                  "password": "%s"
+                }
+                """, TEST_USERNAME, TEST_PASSWORD);
+
+        // ## Act ##
+        var responseSpec = webTestClient
+                .post().uri("/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .cookie("XSRF-TOKEN", xsrfToken)
+                .cookie("JSESSIONID", DUMMY_SESSION_ID)
+                .header("X-XSRF-TOKEN", xsrfToken + "_invalid")
                 .bodyValue(bodyJson)
                 .exchange();
 
