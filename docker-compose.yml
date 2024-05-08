@@ -22,3 +22,9 @@ services:
     restart: always
     ports:
       - "8081:8080"
+
+  redis:
+    image: redis:7.2
+    restart: always
+    ports:
+      - "6379:6379"
