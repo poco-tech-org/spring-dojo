@@ -10,8 +10,9 @@ VALUES ('タイトルです1', '1本文です。')
 
 DELETE FROM users;
 
+-- password is "password" for all users
 INSERT INTO users (username, password, enabled)
-VALUES ('user1', 'password', true)
-     , ('user2', 'password', true)
-     , ('user3', 'password', true)
+VALUES ('user1', '$2a$10$B0Ri58yKTh9c1V2D04HR.eYoVtFc13Sycx3hX8LyD4yC0NkT84Vk.', true)
+     , ('user2', '$2a$10$w15os/pzx8xfrFkf3P2sbOxGVJ7VyugLsG4EZHE5rUx1Lc7zAfGee', true)
+     , ('user3', '$2a$10$Peia4zwXTGmTVPl.frob/ObMRHLZ0RlrbnHhw4tJRh1zwWXX3jOaC', true)
 ;
