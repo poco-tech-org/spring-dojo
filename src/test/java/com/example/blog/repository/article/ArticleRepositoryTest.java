@@ -46,4 +46,16 @@ class ArticleRepositoryTest {
                 });
     }
 
+    @Test
+    @DisplayName("selectById: 指定されたIDの記事が存在しないとき、Optional.emptyを返す")
+    public void selectById_returnEmpty() {
+        // ## Arrange ##
+
+        // ## Act ##
+        var actual = cut.selectById(-999);
+
+        // ## Assert ##
+        assertThat(actual).isEmpty();
+    }
+
 }
