@@ -48,4 +48,16 @@ class ArticleServiceNoMockTest {
 
     }
 
+    @Test
+    @DisplayName("findById: 指定されたIDの記事が存在しないとき、Optional.Empty を返す")
+    public void findById_returnEmpty() {
+        // ## Arrange ##
+
+        // ## Act ##
+        var actual = cut.findById(-999);
+
+        // ## Assert ##
+        assertThat(actual).isEmpty();
+    }
+
 }
