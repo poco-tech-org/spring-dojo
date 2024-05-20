@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ArticleRestController.class)
@@ -56,7 +57,14 @@ class ArticleRestControllerMockTest {
         var actual = mockMvc.perform(get("/articles/{id}", expected.id()));
 
         // ## Assert ##
-        actual.andExpect(status().isOk());
+        actual
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(expected.id()))
+                .andExpect(jsonPath("$.title").value(expected.title()))
+                .andExpect(jsonPath("$.content").value(expected.content()))
+                .andExpect(jsonPath("$.createdAt").value(expected.createdAt().toString()))
+                .andExpect(jsonPath("$.updatedAt").value(expected.updatedAt().toString()))
+                ;
     }
 
 }
