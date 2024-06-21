@@ -6,7 +6,6 @@ tags:
   - name: csrf-protection
     description: CSRF 攻撃対策の API
 paths:
-  # GET /csrf-cookie
   /csrf-cookie:
     get:
       tags: [ csrf-protection ]
@@ -19,9 +18,10 @@ paths:
         XSRF-TOKEN の値は POST リクエストの度に取得し直す必要はなく、同じ値を何度も使うことができます。
       responses:
         '204':
-          description: 204 No Content
+          description: No Content
           headers:
             Set-Cookie:
+              description: CSRF 対策に利用する XSRF-TOKEN という Cookie が含まれています
               schema:
                 type: string
                 example: XSRF-TOKEN=4ee8188f-2873-46cb-937f-7464ebf143e7; Path=/
