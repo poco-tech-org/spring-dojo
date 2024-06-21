@@ -2,6 +2,9 @@ openapi: 3.0.3
 info:
   title: Blog API Documentation
   version: 0.0.1
+servers:
+  - url: http://localhost:8080
+    description: Local Development Server
 tags:
   - name: csrf-protection
     description: CSRF 攻撃対策の API
