@@ -63,7 +63,7 @@ flyway {
 }
 
 def openApiSpecPath = "$projectDir/src/main/resources/openapi.yaml"
-def openApiGeneratedSourceCodePath = layout.buildDirectory.dir("spring").get().toString()
+def openApiGeneratedCodePath = layout.buildDirectory.dir("spring").get().toString()
 
 openApiValidate {
 	inputSpec = openApiSpecPath
@@ -72,7 +72,7 @@ openApiValidate {
 openApiGenerate {
 	generatorName.set("spring")
 	inputSpec.set(openApiSpecPath)
-	outputDir.set(openApiGeneratedSourceCodePath)
+	outputDir.set(openApiGeneratedCodePath)
 	apiPackage.set("com.example.blog.api")
 	modelPackage.set("com.example.blog.model")
 	configOptions.put("interfaceOnly", "true")
@@ -80,3 +80,4 @@ openApiGenerate {
 	configOptions.put("documentationProvider", "none")
 }
 
+sourceSets.main.java.srcDir "${openApiGeneratedCodePath}/src/main/java"
