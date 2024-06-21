@@ -62,16 +62,21 @@ flyway {
 	]
 }
 
+def openApiSpecPath = "$projectDir/src/main/resources/openapi.yaml"
+def openApiGeneratedSourceCodePath = layout.buildDirectory.dir("spring").get().toString()
+
 openApiValidate {
-	inputSpec.set("$projectDir/src/main/resources/openapi.yaml")
+	inputSpec = openApiSpecPath
 }
 
 openApiGenerate {
 	generatorName.set("spring")
-	inputSpec.set("$projectDir/src/main/resources/openapi.yaml")
-	outputDir.set("$buildDir/generated")
-	apiPackage.set("org.openapi.example.api")
-	invokerPackage.set("org.openapi.example.invoker")
-	modelPackage.set("org.openapi.example.model")
-	configOptions.put("dateLibrary", "java8")
+	inputSpec.set(openApiSpecPath)
+	outputDir.set(openApiGeneratedSourceCodePath)
+	apiPackage.set("com.example.blog.api")
+	modelPackage.set("com.example.blog.model")
+	configOptions.put("interfaceOnly", "true")
+	configOptions.put("useSpringBoot3", "true")
+	configOptions.put("documentationProvider", "none")
 }
+
