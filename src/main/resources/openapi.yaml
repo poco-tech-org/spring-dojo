@@ -8,6 +8,8 @@ servers:
 tags:
   - name: csrf-protection
     description: CSRF 攻撃対策の API
+  - name: users
+    description: ユーザー情報の API
 paths:
   /csrf-cookie:
     get:
@@ -34,6 +36,9 @@ paths:
           $ref: "#/components/responses/InternalServerErrorResponse"
   /users:
     post:
+      description: ユーザーを登録します
+      tags: [users]
+      operationId: createUser
       responses:
         '201':
           description: Created
