@@ -59,6 +59,8 @@ paths:
                 $ref: "#/components/schemas/UserDTO"
         '400':
           $ref: "#/components/responses/BadRequestResponse"
+        '500':
+          $ref: "#/components/responses/InternalServerErrorResponse"
 components:
   schemas:
     InternalServerError:
