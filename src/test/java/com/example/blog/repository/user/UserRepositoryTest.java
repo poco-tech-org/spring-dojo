@@ -39,4 +39,19 @@ class UserRepositoryTest {
             assertThat(actualEntity.enabled()).isTrue();
         });
     }
+
+    @Test
+    @DisplayName("selectByUsername: 指定されたユーザー名のユーザーが存在しないとき、Optional.empty を返す")
+    @Sql(statements = {
+            "INSERT INTO users (id, username, password, enabled) VALUES (999, 'test_user_1', 'test_user_1_pass', true);",
+    })
+    void selectByUsername_returnEmpty() {
+        // ## Arrange ##
+
+        // ## Act ##
+        var actual = cut.selectByUsername("invalid_user");
+
+        // ## Assert ##
+        assertThat(actual).isEmpty();
+    }
 }
