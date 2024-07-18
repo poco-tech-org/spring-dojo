@@ -54,4 +54,19 @@ class UserRepositoryTest {
         // ## Assert ##
         assertThat(actual).isEmpty();
     }
+
+    @Test
+    @DisplayName("selectByUsername: ユーザー名にnullが指定されたとき、Optional.empty を返す")
+    @Sql(statements = {
+            "INSERT INTO users (id, username, password, enabled) VALUES (999, 'null', 'test_user_1_pass', true);",
+    })
+    void selectByUsername_returnEmpty_whenNullIsGiven() {
+        // ## Arrange ##
+
+        // ## Act ##
+        var actual = cut.selectByUsername(null);
+
+        // ## Assert ##
+        assertThat(actual).isEmpty();
+    }
 }
