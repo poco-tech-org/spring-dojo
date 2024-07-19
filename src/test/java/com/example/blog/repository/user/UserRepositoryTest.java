@@ -1,6 +1,7 @@
 package com.example.blog.repository.user;
 
 import com.example.blog.config.MybatisDefaultDatasourceTest;
+import com.example.blog.service.user.UserEntity;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,10 +34,10 @@ class UserRepositoryTest {
 
         // ## Assert ##
         assertThat(actual).hasValueSatisfying(actualEntity -> {
-            assertThat(actualEntity.id()).isEqualTo(999);
-            assertThat(actualEntity.username()).isEqualTo("test_user_1");
-            assertThat(actualEntity.password()).isEqualTo("test_user_1_pass");
-            assertThat(actualEntity.enabled()).isTrue();
+            assertThat(actualEntity.getId()).isEqualTo(999);
+            assertThat(actualEntity.getUsername()).isEqualTo("test_user_1");
+            assertThat(actualEntity.getPassword()).isEqualTo("test_user_1_pass");
+            assertThat(actualEntity.isEnabled()).isTrue();
         });
     }
 
@@ -74,17 +75,22 @@ class UserRepositoryTest {
     @DisplayName("insert: User を登録することができる")
     void insert_success() {
         // ## Arrange ##
+        var newRecord = new UserEntity(null, "test_user_1", "test_user_1_pass", true);
 
         // ## Act ##
-        cut.insert("test_user_1", "test_user_1_pass", true);
+        cut.insert(newRecord);
 
         // ## Assert ##
+        assertThat(newRecord.getId())
+                .describedAs("AUTO INCREMENT で設定された id が entity の id フィールドに設定されている")
+                .isGreaterThanOrEqualTo(1);
+
         var actual = cut.selectByUsername("test_user_1");
         assertThat(actual).hasValueSatisfying(actualEntity -> {
-            assertThat(actualEntity.id()).isNotNull();
-            assertThat(actualEntity.username()).isEqualTo("test_user_1");
-            assertThat(actualEntity.password()).isEqualTo("test_user_1_pass");
-            assertThat(actualEntity.enabled()).isTrue();
+            assertThat(actualEntity.getId()).isGreaterThanOrEqualTo(1);
+            assertThat(actualEntity.getUsername()).isEqualTo("test_user_1");
+            assertThat(actualEntity.getPassword()).isEqualTo("test_user_1_pass");
+            assertThat(actualEntity.isEnabled()).isTrue();
         });
     }
 }

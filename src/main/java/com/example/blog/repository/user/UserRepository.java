@@ -29,11 +29,8 @@ public interface UserRepository {
             INSERT INTO users (username, password, enabled)
             VALUES (#{username}, #{password}, #{enabled})
             """)
-    void insert(
-            @Param("username") String username,
-            @Param("password") String password,
-            @Param("enabled") boolean enabled
-    );
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    void insert(UserEntity entity);
 
     @Delete("""
             DELETE FROM users u

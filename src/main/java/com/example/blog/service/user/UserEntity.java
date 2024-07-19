@@ -1,9 +1,13 @@
 package com.example.blog.service.user;
 
-public record UserEntity(
-        long id,
-        String username,
-        String password,
-        boolean enabled
-) {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@AllArgsConstructor
+@Data
+public class UserEntity {
+    private Long id;
+    private String username;
+    private String password;
+    private boolean enabled;
 }
