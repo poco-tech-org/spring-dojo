@@ -83,6 +83,9 @@ class UserRestControllerTest {
         actual
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", matchesPattern("/users/\\d+")))
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.username").value("username123"))
+                .andExpect(jsonPath("$.password").doesNotExist())
         ;
     }
 
