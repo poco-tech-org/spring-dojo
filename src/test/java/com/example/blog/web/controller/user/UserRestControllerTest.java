@@ -89,4 +89,28 @@ class UserRestControllerTest {
         ;
     }
 
+    @Test
+    @DisplayName("POST /users: リクエストボディに username のキーがないとき、400 Bad Request")
+    void createUser_badRequest() throws Exception {
+        // ## Arrange ##
+        var newUserJson = """
+                {
+                  "password": "password123"
+                }
+                """;
+
+        // ## Act ##
+        var actual = mockMvc.perform(
+                post("/users")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(newUserJson)
+        );
+
+        // ## Assert ##
+        actual
+                .andExpect(status().isBadRequest())
+        ;
+    }
+
 }
