@@ -8,6 +8,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -40,11 +43,18 @@ class UserFormTest {
         assertThat(actual).isEmpty();
     }
 
-    @Test
+    @ParameterizedTest
     @DisplayName("username のバリデーション：失敗")
-    void username_failure() {
+    @NullSource
+    @ValueSource(strings = {
+            "",
+            "a",
+            "aa",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    })
+    void username_failure(String username) {
         // ## Arrange ##
-        var cut = new UserForm(null, "password00");
+        var cut = new UserForm(username, "password00");
 
         // ## Act ##
         var actual = validator.validate(cut);
