@@ -7,7 +7,6 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -30,11 +29,18 @@ class UserFormTest {
         validatorFactory.close();
     }
 
-    @Test
+    @ParameterizedTest
     @DisplayName("username のバリデーション：成功")
-    void username_success() {
+    @ValueSource(strings = {
+            "aaa",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "abcdefghijklmnopqrstuvwxyz",
+            "0123456789",
+            "user-._name",
+    })
+    void username_success(String username) {
         // ## Arrange ##
-        var cut = new UserForm("username00", "password00");
+        var cut = new UserForm(username, "password00");
 
         // ## Act ##
         var actual = validator.validate(cut);
