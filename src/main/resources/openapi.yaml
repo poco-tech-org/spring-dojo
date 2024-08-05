@@ -83,6 +83,18 @@ components:
         instance:
           type: string
           format: uri
+    ErrorDetail:
+      description: BadRequest エラーが発生したときのエラーの詳細
+      type: object
+      properties:
+        pointer:
+          description: エラーが発生したリクエストパラメーターの JSON ポインター
+          type: string
+          example: "#/username"
+        detail:
+          description: エラーの詳細
+          type: string
+          example: "ユーザー名は3文字以上32文字以内で入力してください"
     BadRequest:
       description: >
         リクエストの内容が不正な場合のエラーレスポンス。
@@ -109,16 +121,7 @@ components:
         errors:
           type: array
           items:
-            type: object
-            properties:
-              pointer:
-                description: エラーが発生したリクエストパラメーターの JSON ポインター
-                type: string
-                example: "#/username"
-              detail:
-                description: エラーの詳細
-                type: string
-                example: "ユーザー名は3文字以上32文字以内で入力してください"
+            $ref: "#/components/schemas/ErrorDetail"
     UserForm:
       type: object
       required:
