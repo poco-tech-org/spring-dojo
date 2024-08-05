@@ -6,7 +6,9 @@ import com.example.blog.model.UserForm;
 import com.example.blog.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.DataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -17,6 +19,12 @@ import java.security.Principal;
 public class UserRestController implements UsersApi {
 
     private final UserService userService;
+    private final DuplicateUsernameValidator duplicateUsernameValidator;
+
+    @InitBinder
+    public void initBinder(DataBinder dataBinder) {
+        dataBinder.addValidators(duplicateUsernameValidator);
+    }
 
     // GET /users/me
     @GetMapping("/users/me")
