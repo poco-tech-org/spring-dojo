@@ -104,4 +104,30 @@ class UserFormTest {
         // ## Assert ##
         assertThat(actual).isEmpty();
     }
+
+    @ParameterizedTest
+    @DisplayName("password のバリデーション：失敗")
+    @ValueSource(strings = {
+            // 9 characters
+            "123456789",
+            // 256 characters
+            "12345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890"
+                    + "12345678901234567890123456789012345678901234567890"
+                    + "123456",
+    })
+    void password_failure(String password) {
+        // ## Arrange ##
+        var cut = new UserForm("username00", password);
+
+        // ## Act ##
+        var actual = validator.validate(cut);
+
+        // ## Assert ##
+        assertThat(actual).isNotEmpty();
+        assertThat(actual)
+                .anyMatch(violation -> violation.getPropertyPath().toString().equals("password"));
+    }
 }
