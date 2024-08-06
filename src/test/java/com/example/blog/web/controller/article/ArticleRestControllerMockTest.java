@@ -1,6 +1,7 @@
 package com.example.blog.web.controller.article;
 
 import com.example.blog.config.ObjectMapperConfig;
+import com.example.blog.config.PasswordEncoderConfig;
 import com.example.blog.config.SecurityConfig;
 import com.example.blog.service.article.ArticleEntity;
 import com.example.blog.service.article.ArticleService;
@@ -23,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ArticleRestController.class)
-@Import({ObjectMapperConfig.class, SecurityConfig.class})
+@Import({ObjectMapperConfig.class, SecurityConfig.class, PasswordEncoderConfig.class})
 class ArticleRestControllerMockTest {
 
     @Autowired
