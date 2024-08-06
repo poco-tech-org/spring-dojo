@@ -70,6 +70,21 @@ paths:
             application/json: {}
         '500':
           $ref: "#/components/responses/InternalServerErrorResponse"
+  /logout:
+    post:
+      description: ログアウトをします
+      tags: [ login-logout ]
+      operationId: logout
+      security:
+        - csrfProtectionHeader: [ ]
+        - csrfProtectionCookie: [ ]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json: { }
+        '500':
+          $ref: "#/components/responses/InternalServerErrorResponse"
   /users:
     post:
       description: ユーザーを登録します
