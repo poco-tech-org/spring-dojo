@@ -1,5 +1,6 @@
 package com.example.blog.config;
 
+import com.example.blog.model.Forbidden;
 import com.example.blog.model.Unauthorized;
 import com.example.blog.web.filter.CsrfCookieFilter;
 import com.example.blog.web.filter.JsonUsernamePasswordAuthenticationFilter;
@@ -25,6 +26,8 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.security.web.csrf.InvalidCsrfTokenException;
+import org.springframework.security.web.csrf.MissingCsrfTokenException;
 
 import java.net.URI;
 
@@ -63,9 +66,19 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(customizer -> customizer
-                        .accessDeniedHandler((req, res, auth) -> {
-                            res.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                        })
+                        .accessDeniedHandler(((request, response, accessDeniedException) -> {
+                            if (accessDeniedException instanceof MissingCsrfTokenException
+                                    || accessDeniedException instanceof InvalidCsrfTokenException) {
+                                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
+
+                                var body = new Forbidden();
+                                body.detail("CSRFトークンが不正です");
+                                body.instance(URI.create(request.getRequestURI()));
+
+                                objectMapper.writeValue(response.getOutputStream(), body);
+                            }
+                        }))
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
