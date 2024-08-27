@@ -75,4 +75,27 @@ class ArticleRestControllerTest {
                 .andExpect(jsonPath("$.instance").value("/articles"))
         ;
     }
+
+    @Test
+    @DisplayName("POST /articles: リクエストに CSRF トークンが付加されていないとき 403 Forbidden を返す")
+    void createArticles_403Forbidden() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        var actual = mockMvc.perform(
+                post("/articles")
+                        // .with(csrf()) // CSRF トークンを付加しない
+                        .with(user("user1"))
+        );
+
+        // ## Assert ##
+        actual
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Forbidden"))
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.detail").value("CSRFトークンが不正です"))
+                .andExpect(jsonPath("$.instance").value("/articles"))
+        ;
+    }
 }
