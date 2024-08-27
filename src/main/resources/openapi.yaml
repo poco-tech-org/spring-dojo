@@ -198,6 +198,7 @@ components:
       properties:
         title:
           type: string
+          default: Unauthorized
         status:
           type: integer
           format: int32
