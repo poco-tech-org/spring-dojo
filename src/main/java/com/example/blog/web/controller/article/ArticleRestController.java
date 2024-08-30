@@ -1,16 +1,16 @@
 package com.example.blog.web.controller.article;
 
 import com.example.blog.api.ArticlesApi;
+import com.example.blog.model.ArticleDTO;
+import com.example.blog.model.UserDTO;
 import com.example.blog.service.article.ArticleService;
-import com.example.blog.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.time.OffsetDateTime;
 
 @RestController
 @RequiredArgsConstructor
@@ -18,18 +18,23 @@ public class ArticleRestController implements ArticlesApi {
 
     private final ArticleService articleService;
 
-    @GetMapping("/articles/{id}")
-    public ArticleDTO showArticle(@PathVariable("id") long id) {
-        return articleService.findById(id)
-                .map(ArticleDTO::from)
-                .orElseThrow(ResourceNotFoundException::new);
-    }
-
     @Override
-    public ResponseEntity<Void> createArticle() {
+    public ResponseEntity<ArticleDTO> createArticle() {
+        var userDTO = new UserDTO();
+        userDTO.setId(99L);
+        userDTO.setUsername("test_user");
+
+        var body = new ArticleDTO();
+        body.setId(123L);
+        body.title("test_title");
+        body.body("test_body");
+        body.setAuthor(userDTO);
+        body.setCreatedAt(OffsetDateTime.now());
+        body.setUpdatedAt(OffsetDateTime.now());
+
         return ResponseEntity
                 .created(URI.create("/articles/123")) // TODO
                 .contentType(MediaType.APPLICATION_JSON)
-                .build();
+                .body(body);
     }
 }
