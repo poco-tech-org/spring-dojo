@@ -2,6 +2,7 @@ package com.example.blog.web.controller.article;
 
 import com.example.blog.api.ArticlesApi;
 import com.example.blog.model.ArticleDTO;
+import com.example.blog.model.ArticleForm;
 import com.example.blog.model.UserDTO;
 import com.example.blog.service.article.ArticleService;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +20,15 @@ public class ArticleRestController implements ArticlesApi {
     private final ArticleService articleService;
 
     @Override
-    public ResponseEntity<ArticleDTO> createArticle() {
+    public ResponseEntity<ArticleDTO> createArticle(ArticleForm form) {
         var userDTO = new UserDTO();
         userDTO.setId(99L);
         userDTO.setUsername("test_user");
 
         var body = new ArticleDTO();
         body.setId(123L);
-        body.title("test_title");
-        body.body("test_body");
+        body.title(form.getTitle());
+        body.body(form.getBody());
         body.setAuthor(userDTO);
         body.setCreatedAt(OffsetDateTime.now());
         body.setUpdatedAt(OffsetDateTime.now());
