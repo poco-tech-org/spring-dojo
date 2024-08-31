@@ -46,9 +46,10 @@ class ArticleRestControllerMockTest {
     public void getArticlesById_200OK() throws Exception {
         // ## Arrange ##
         var expected = new ArticleEntity(
-          999L,
-          "title_999",
-          "content_999",
+                999L,
+                "title_999",
+                "content_999",
+                null,
                 LocalDateTime.of(2022, 1, 2, 3, 4, 5),
                 LocalDateTime.of(2023, 1, 2, 3, 4, 5)
         );
@@ -65,7 +66,7 @@ class ArticleRestControllerMockTest {
                 .andExpect(jsonPath("$.content").value(expected.getContent()))
                 .andExpect(jsonPath("$.createdAt").value(expected.getCreatedAt().toString()))
                 .andExpect(jsonPath("$.updatedAt").value(expected.getUpdatedAt().toString()))
-                ;
+        ;
     }
 
     @Test
