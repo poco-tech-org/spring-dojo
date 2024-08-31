@@ -38,7 +38,7 @@ class ArticleServiceMockTest {
         assertThat(articleRepository.selectById(999))
                 .isPresent()
                 .hasValueSatisfying(article -> {
-                    assertThat(article.id()).isEqualTo(999);
+                    assertThat(article.getId()).isEqualTo(999);
                 });
         assertThat(articleRepository.selectById(111)).isEmpty();
     }
@@ -63,11 +63,11 @@ class ArticleServiceMockTest {
         assertThat(actual)
                 .isPresent()
                 .hasValueSatisfying(article -> {
-                    assertThat(article.id()).isEqualTo(999);
-                    assertThat(article.title()).isEqualTo("title_999");
-                    assertThat(article.content()).isEqualTo("body_999");
-                    assertThat(article.createdAt()).isEqualTo("2022-01-01T10:00:00");
-                    assertThat(article.updatedAt()).isEqualTo("2022-02-01T11:00:00");
+                    assertThat(article.getId()).isEqualTo(999);
+                    assertThat(article.getTitle()).isEqualTo("title_999");
+                    assertThat(article.getContent()).isEqualTo("body_999");
+                    assertThat(article.getCreatedAt()).isEqualTo("2022-01-01T10:00:00");
+                    assertThat(article.getUpdatedAt()).isEqualTo("2022-02-01T11:00:00");
                 });
 
     }

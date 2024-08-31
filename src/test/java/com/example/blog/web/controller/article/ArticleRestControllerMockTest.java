@@ -52,19 +52,19 @@ class ArticleRestControllerMockTest {
                 LocalDateTime.of(2022, 1, 2, 3, 4, 5),
                 LocalDateTime.of(2023, 1, 2, 3, 4, 5)
         );
-        when(mockArticleService.findById(expected.id())).thenReturn(Optional.of(expected));
+        when(mockArticleService.findById(expected.getId())).thenReturn(Optional.of(expected));
 
         // ## Act ##
-        var actual = mockMvc.perform(get("/articles/{id}", expected.id()));
+        var actual = mockMvc.perform(get("/articles/{id}", expected.getId()));
 
         // ## Assert ##
         actual
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(expected.id()))
-                .andExpect(jsonPath("$.title").value(expected.title()))
-                .andExpect(jsonPath("$.content").value(expected.content()))
-                .andExpect(jsonPath("$.createdAt").value(expected.createdAt().toString()))
-                .andExpect(jsonPath("$.updatedAt").value(expected.updatedAt().toString()))
+                .andExpect(jsonPath("$.id").value(expected.getId()))
+                .andExpect(jsonPath("$.title").value(expected.getTitle()))
+                .andExpect(jsonPath("$.content").value(expected.getContent()))
+                .andExpect(jsonPath("$.createdAt").value(expected.getCreatedAt().toString()))
+                .andExpect(jsonPath("$.updatedAt").value(expected.getUpdatedAt().toString()))
                 ;
     }
 
