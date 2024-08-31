@@ -46,7 +46,7 @@ class ArticleRestControllerMockTest {
     public void getArticlesById_200OK() throws Exception {
         // ## Arrange ##
         var expected = new ArticleEntity(
-          999,
+          999L,
           "title_999",
           "content_999",
                 LocalDateTime.of(2022, 1, 2, 3, 4, 5),

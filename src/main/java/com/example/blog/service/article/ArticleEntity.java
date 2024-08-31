@@ -3,7 +3,7 @@ package com.example.blog.service.article;
 import java.time.LocalDateTime;
 
 public record ArticleEntity(
-        long id,
+        Long id,
         String title,
         String content,
         LocalDateTime createdAt,
