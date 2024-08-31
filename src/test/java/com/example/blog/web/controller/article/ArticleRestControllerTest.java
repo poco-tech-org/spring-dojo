@@ -1,5 +1,6 @@
 package com.example.blog.web.controller.article;
 
+import com.example.blog.security.LoggedInUser;
 import com.example.blog.service.user.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,7 +43,7 @@ class ArticleRestControllerTest {
     @DisplayName("POST /articles: 新規記事の作成に成功する")
     void createArticles_201Created() throws Exception {
         // ## Arrange ##
-        var expectedUsername = "test_user";
+        var expectedUser = new LoggedInUser(1L, "test_user", "", true);
         var expectedTitle = "test_title";
         var expectedBody = "test_body";
         var bodyJson = """
@@ -56,7 +57,7 @@ class ArticleRestControllerTest {
         var actual = mockMvc.perform(
                 post("/articles")
                         .with(csrf())
-                        .with(user(expectedUsername))
+                        .with(user(expectedUser))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyJson)
         );
@@ -69,8 +70,8 @@ class ArticleRestControllerTest {
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.title").value(expectedTitle))
                 .andExpect(jsonPath("$.body").value(expectedBody))
-                .andExpect(jsonPath("$.author.id").isNumber())
-                .andExpect(jsonPath("$.author.username").value(expectedUsername))
+                .andExpect(jsonPath("$.author.id").value(expectedUser.getUserId()))
+                .andExpect(jsonPath("$.author.username").value(expectedUser.getUsername()))
                 .andExpect(jsonPath("$.createdAt").isNotEmpty())
                 .andExpect(jsonPath("$.updatedAt").isNotEmpty())
         ;
