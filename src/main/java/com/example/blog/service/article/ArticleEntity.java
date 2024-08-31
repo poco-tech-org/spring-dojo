@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class ArticleEntity {
     private Long id;
     private String title;
-    private String content;
+    private String body;
     private UserEntity author;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -63,7 +63,7 @@ class ArticleRestControllerMockTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(expected.getId()))
                 .andExpect(jsonPath("$.title").value(expected.getTitle()))
-                .andExpect(jsonPath("$.content").value(expected.getContent()))
+                .andExpect(jsonPath("$.content").value(expected.getBody()))
                 .andExpect(jsonPath("$.createdAt").value(expected.getCreatedAt().toString()))
                 .andExpect(jsonPath("$.updatedAt").value(expected.getUpdatedAt().toString()))
         ;
