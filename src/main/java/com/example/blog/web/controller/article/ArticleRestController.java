@@ -11,9 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.net.URI;
-import java.time.OffsetDateTime;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,20 +26,30 @@ public class ArticleRestController implements ArticlesApi {
                 .getAuthentication()
                 .getPrincipal();
 
+        var newArticle = articleService.create(
+                loggedInUser.getUserId(),
+                form.getTitle(),
+                form.getBody()
+        );
+
         var userDTO = new UserDTO();
-        userDTO.setId(loggedInUser.getUserId());
-        userDTO.setUsername(loggedInUser.getUsername());
+        userDTO.setId(newArticle.getAuthor().getId());
+        userDTO.setUsername(newArticle.getAuthor().getUsername());
 
         var body = new ArticleDTO();
-        body.setId(123L);
-        body.title(form.getTitle());
-        body.body(form.getBody());
+        body.setId(newArticle.getId());
+        body.title(newArticle.getTitle());
+        body.body(newArticle.getBody());
         body.setAuthor(userDTO);
-        body.setCreatedAt(OffsetDateTime.now());
-        body.setUpdatedAt(OffsetDateTime.now());
+        body.setCreatedAt(newArticle.getCreatedAt());
+        body.setUpdatedAt(newArticle.getUpdatedAt());
+
+        var location = UriComponentsBuilder.fromPath("/articles/{id}")
+                .buildAndExpand(newArticle.getId())
+                .toUri();
 
         return ResponseEntity
-                .created(URI.create("/articles/123")) // TODO
+                .created(location)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(body);
     }

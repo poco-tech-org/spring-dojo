@@ -43,7 +43,8 @@ class ArticleRestControllerTest {
     @DisplayName("POST /articles: 新規記事の作成に成功する")
     void createArticles_201Created() throws Exception {
         // ## Arrange ##
-        var expectedUser = new LoggedInUser(1L, "test_user", "", true);
+        var newUser = userService.register("test_username", "test_password");
+        var expectedUser = new LoggedInUser(newUser.getId(), newUser.getUsername(), newUser.getPassword(), true);
         var expectedTitle = "test_title";
         var expectedBody = "test_body";
         var bodyJson = """
