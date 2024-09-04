@@ -1,10 +1,7 @@
 package com.example.blog.repository.article;
 
 import com.example.blog.service.article.ArticleEntity;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 import java.util.Optional;
 
@@ -21,6 +18,13 @@ public interface ArticleRepository {
             FROM articles
             WHERE id = #{id}
             """)
+    @Results(value = {
+            @Result(column = "id", property = "id"),
+            @Result(column = "title", property = "title"),
+            @Result(column = "body", property = "body"),
+            @Result(column = "created_at", property = "createdAt"),
+            @Result(column = "updated_at", property = "updatedAt")
+    })
     Optional<ArticleEntity> selectById(@Param("id") long id);
 
     @Insert("""
