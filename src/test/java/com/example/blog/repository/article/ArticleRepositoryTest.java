@@ -1,6 +1,10 @@
 package com.example.blog.repository.article;
 
 import com.example.blog.config.MybatisDefaultDatasourceTest;
+import com.example.blog.repository.user.UserRepository;
+import com.example.blog.service.article.ArticleEntity;
+import com.example.blog.service.user.UserEntity;
+import com.example.blog.util.TestDateTimeUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +17,8 @@ class ArticleRepositoryTest {
 
     @Autowired
     private ArticleRepository cut;
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     public void test() {
@@ -60,6 +66,38 @@ class ArticleRepositoryTest {
 
         // ## Assert ##
         assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("insert：記事データの作成に成功する")
+    void insert_success() {
+        // ## Arrange ##
+        var expectedUser = new UserEntity(null, "test_username", "test_password", true);
+        userRepository.insert(expectedUser);
+
+        var expectedEntity = new ArticleEntity(
+                null,
+                "test_title",
+                "test_body",
+                expectedUser,
+                TestDateTimeUtil.of(2020, 1, 1, 10, 30, 40),
+                TestDateTimeUtil.of(2021, 1, 1, 10, 30, 40)
+        );
+
+        // ## Act ##
+        cut.insert(expectedEntity);
+
+        // ## Assert ##
+        var actualOpt = cut.selectById(expectedEntity.getId());
+        assertThat(actualOpt).hasValueSatisfying(actualEntity -> {
+            assertThat(actualEntity.getId()).isEqualTo(expectedEntity.getId());
+            assertThat(actualEntity.getTitle()).isEqualTo(expectedEntity.getTitle());
+            assertThat(actualEntity.getBody()).isEqualTo(expectedEntity.getBody());
+            // TODO author
+            assertThat(actualEntity.getCreatedAt()).isEqualTo(expectedEntity.getCreatedAt());
+            assertThat(actualEntity.getUpdatedAt()).isEqualTo(expectedEntity.getUpdatedAt());
+        });
+
     }
 
 }
