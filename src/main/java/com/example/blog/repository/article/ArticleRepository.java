@@ -21,4 +21,6 @@ public interface ArticleRepository {
             WHERE id = #{id}
             """)
     Optional<ArticleEntity> selectById(@Param("id") long id);
+
+    void insert(ArticleEntity newEntity);
 }
