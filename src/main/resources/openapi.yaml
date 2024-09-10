@@ -157,6 +157,7 @@ paths:
       description: >
         記事の一覧を取得します。
         パフォーマンス対策により、記事本文はレスポンスに含まれません。
+      operationId: listArticles
       responses:
         '200':
           description: OK
