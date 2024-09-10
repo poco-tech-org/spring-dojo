@@ -57,6 +57,8 @@ public class ArticleRestController implements ArticlesApi {
 
     @Override
     public ResponseEntity<ArticleListDTO> listArticles() {
+        var entitEyList = articleService.findAll();
+
         return ResponseEntity
                 .ok(new ArticleListDTO());
     }
