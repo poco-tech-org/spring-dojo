@@ -66,8 +66,8 @@ class ArticleRestControllerListArticlesTest {
         actual
                 .andExpect(jsonPath("$.items[0].id").value(expectedArticle1.getId()))
                 .andExpect(jsonPath("$.items[0].title").value(expectedArticle1.getTitle()))
-                .andExpect(jsonPath("$.items[0].createdAt").value(expectedArticle1.getCreatedAt()))
-                .andExpect(jsonPath("$.items[0].updatedAt").value(expectedArticle1.getUpdatedAt()))
+                .andExpect(jsonPath("$.items[0].createdAt").value(expectedArticle1.getCreatedAt().toString()))
+                .andExpect(jsonPath("$.items[0].updatedAt").value(expectedArticle1.getUpdatedAt().toString()))
                 .andExpect(jsonPath("$.items[0].author.id").value(expectedUser1.getId()))
                 .andExpect(jsonPath("$.items[0].author.username").value(expectedUser1.getUsername()))
         ;
@@ -76,8 +76,8 @@ class ArticleRestControllerListArticlesTest {
         actual
                 .andExpect(jsonPath("$.items[1].id").value(expectedArticle2.getId()))
                 .andExpect(jsonPath("$.items[1].title").value(expectedArticle2.getTitle()))
-                .andExpect(jsonPath("$.items[1].createdAt").value(expectedArticle2.getCreatedAt()))
-                .andExpect(jsonPath("$.items[1].updatedAt").value(expectedArticle2.getUpdatedAt()))
+                .andExpect(jsonPath("$.items[1].createdAt").value(expectedArticle2.getCreatedAt().toString()))
+                .andExpect(jsonPath("$.items[1].updatedAt").value(expectedArticle2.getUpdatedAt().toString()))
                 .andExpect(jsonPath("$.items[1].author.id").value(expectedUser2.getId()))
                 .andExpect(jsonPath("$.items[1].author.username").value(expectedUser2.getUsername()))
         ;
