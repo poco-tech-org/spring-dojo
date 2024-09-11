@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RegistrationAndLoginIT {
 
-    private static final String TEST_USERNAME = "user1";
+    private static final String TEST_USERNAME = "test_username1";
     private static final String TEST_PASSWORD = "password10";
     private static final String DUMMY_SESSION_ID = "session_id_1";
     private static final String SESSION_COOKIE_NAME = "SESSION";
