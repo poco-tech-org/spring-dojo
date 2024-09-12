@@ -66,4 +66,27 @@ class ArticleRestControllerGetArticleTest {
         ;
     }
 
+    @Test
+    @DisplayName("GET /articles/{articleId}: 指定された記事IDが存在しないとき 404 を返す")
+    void getArticle_404() throws Exception {
+        // ## Arrange ##
+        var invalidArticleId = 0;
+
+        // ## Act ##
+        var actual = mockMvc.perform(
+                get("/articles/{articleId}", invalidArticleId)
+                        .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        // ## Assert ##
+        actual
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value("リソースが見つかりません"))
+                .andExpect(jsonPath("$.instance").value("/articles/" + invalidArticleId))
+        ;
+    }
+
 }

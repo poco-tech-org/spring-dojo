@@ -302,6 +302,7 @@ components:
           default: 404
         detail:
           type: string
+          default: "リソースが見つかりません"
         instance:
           type: string
           format: uri
