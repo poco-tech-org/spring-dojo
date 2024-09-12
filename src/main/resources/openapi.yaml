@@ -197,10 +197,6 @@ components:
     InternalServerError:
       type: object
       properties:
-        type:
-          type: string
-          format: uri
-          default: "about:blank"
         title:
           type: string
           default: "Internal Server Error"
@@ -214,7 +210,6 @@ components:
         instance:
           type: string
           format: uri
-          default: null
     ErrorDetail:
       description: BadRequest エラーが発生したときのエラーの詳細
       type: object

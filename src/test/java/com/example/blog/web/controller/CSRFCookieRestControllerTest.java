@@ -11,6 +11,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.core.StringContains.containsString;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -61,11 +62,11 @@ class CSRFCookieRestControllerTest {
             result
                     .andExpect(status().isInternalServerError())
                     .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-                    .andExpect(jsonPath("$.type").value("about:blank"))
                     .andExpect(jsonPath("$.title").value("Internal Server Error"))
                     .andExpect(jsonPath("$.status").value(500))
                     .andExpect(jsonPath("$.detail").isEmpty())
-                    .andExpect(jsonPath("$.instance").isEmpty())
+                    .andExpect(jsonPath("$.instance").value("/csrf-cookie"))
+                    .andExpect(jsonPath("$", aMapWithSize(4)))
             ;
         }
     }

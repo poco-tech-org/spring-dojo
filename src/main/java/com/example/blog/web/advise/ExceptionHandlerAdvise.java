@@ -54,11 +54,14 @@ public class ExceptionHandlerAdvise {
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<InternalServerError> handleInternalServerError(RuntimeException e) {
+    public ResponseEntity<InternalServerError> handleInternalServerError(
+            RuntimeException e,
+            HttpServletRequest request
+    ) {
         return ResponseEntity
                 .internalServerError()
                 .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-                .body(new InternalServerError());
+                .body(new InternalServerError().instance(URI.create(request.getRequestURI())));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)

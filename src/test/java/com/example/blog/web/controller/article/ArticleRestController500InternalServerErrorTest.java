@@ -73,9 +73,8 @@ class ArticleRestController500InternalServerErrorTest {
                 .andExpect(jsonPath("$.title").value("Internal Server Error"))
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.detail").isEmpty())
-                .andExpect(jsonPath("$.type").value("about:blank"))
-                .andExpect(jsonPath("$.instance").isEmpty())
-                .andExpect(jsonPath("$", aMapWithSize(5)))
+                .andExpect(jsonPath("$.instance").value("/articles"))
+                .andExpect(jsonPath("$", aMapWithSize(4)))
         ;
     }
 
@@ -98,9 +97,8 @@ class ArticleRestController500InternalServerErrorTest {
                 .andExpect(jsonPath("$.title").value("Internal Server Error"))
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.detail").isEmpty())
-                .andExpect(jsonPath("$.type").value("about:blank"))
-                .andExpect(jsonPath("$.instance").isEmpty())
-                .andExpect(jsonPath("$", aMapWithSize(5)))
+                .andExpect(jsonPath("$.instance").value("/articles"))
+                .andExpect(jsonPath("$", aMapWithSize(4)))
         ;
     }
 
@@ -124,9 +122,8 @@ class ArticleRestController500InternalServerErrorTest {
                 .andExpect(jsonPath("$.title").value("Internal Server Error"))
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.detail").isEmpty())
-                .andExpect(jsonPath("$.type").value("about:blank"))
-                .andExpect(jsonPath("$.instance").isEmpty())
-                .andExpect(jsonPath("$", aMapWithSize(5)))
+                .andExpect(jsonPath("$.instance").value("/articles/" + articleId))
+                .andExpect(jsonPath("$", aMapWithSize(4)))
         ;
     }
 }
