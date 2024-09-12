@@ -3,11 +3,14 @@ package com.example.blog.web.advise;
 import com.example.blog.model.BadRequest;
 import com.example.blog.model.ErrorDetail;
 import com.example.blog.model.InternalServerError;
+import com.example.blog.model.NotFound;
 import com.example.blog.web.exception.ResourceNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.net.URI;
 import java.util.ArrayList;
 
 @RestControllerAdvice
@@ -58,7 +62,13 @@ public class ExceptionHandlerAdvise {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Void> handleResourceNotFoundException(ResourceNotFoundException e) {
-        return ResponseEntity.notFound().build();
+    public ResponseEntity<NotFound> handleResourceNotFoundException(
+            ResourceNotFoundException e,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(new NotFound().instance(URI.create(request.getRequestURI())));
     }
 }

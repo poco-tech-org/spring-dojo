@@ -4,6 +4,7 @@ import com.example.blog.api.ArticlesApi;
 import com.example.blog.model.*;
 import com.example.blog.security.LoggedInUser;
 import com.example.blog.service.article.ArticleService;
+import com.example.blog.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.http.MediaType;
@@ -79,15 +80,17 @@ public class ArticleRestController implements ArticlesApi {
 
     @Override
     public ResponseEntity<ArticleDTO> getArticle(Long articleId) {
-        var entity = articleService.findById(articleId).get(); // TODO .get()
+        return articleService.findById(articleId)
+                .map(entity -> {
+                    var userDTO = new UserDTO();
+                    BeanUtils.copyProperties(entity.getAuthor(), userDTO);
 
-        var userDTO = new UserDTO();
-        BeanUtils.copyProperties(entity.getAuthor(), userDTO);
+                    var body = new ArticleDTO();
+                    BeanUtils.copyProperties(entity, body);
+                    body.setAuthor(userDTO);
 
-        var body = new ArticleDTO();
-        BeanUtils.copyProperties(entity, body);
-        body.setAuthor(userDTO);
-
-        return ResponseEntity.ok(body);
+                    return ResponseEntity.ok(body);
+                })
+                .orElseThrow(ResourceNotFoundException::new);
     }
 }

@@ -295,7 +295,7 @@ components:
       properties:
         title:
           type: string
-          default: NotFound
+          default: Not Found
         status:
           type: integer
           format: int32
