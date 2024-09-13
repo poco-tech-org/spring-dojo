@@ -50,10 +50,13 @@ public class ArticleService {
             String updatedBody
     ) {
         // TODO mock impl
-        var currentEntity = findById(articleId).orElseThrow();
-        currentEntity.setTitle(updatedTitle);
-        currentEntity.setBody(updatedBody);
-        currentEntity.setUpdatedAt(dateTimeService.now());
-        return currentEntity;
+        var entity = findById(articleId).orElseThrow();
+        entity.setTitle(updatedTitle);
+        entity.setBody(updatedBody);
+        entity.setUpdatedAt(dateTimeService.now());
+
+        articleRepository.update(entity);
+
+        return entity;
     }
 }
