@@ -41,4 +41,19 @@ public class ArticleService {
     public List<ArticleEntity> findAll() {
         return articleRepository.selectAll();
     }
+
+    @Transactional
+    public ArticleEntity update(
+            long userId,
+            long articleId,
+            String updatedTitle,
+            String updatedBody
+    ) {
+        // TODO mock impl
+        var currentEntity = findById(articleId).orElseThrow();
+        currentEntity.setTitle(updatedTitle);
+        currentEntity.setBody(updatedBody);
+        currentEntity.setUpdatedAt(dateTimeService.now());
+        return currentEntity;
+    }
 }
