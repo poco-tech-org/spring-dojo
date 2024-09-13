@@ -82,6 +82,40 @@ class ArticleRestControllerUpdateArticleTest {
         ;
     }
 
+    @Test
+    @DisplayName("PUT /articles/{articleId}: 指定されたIDの記事が存在しないとき、404を返す")
+    void updateArticle_404NotFound() throws Exception {
+        // ## Arrange ##
+        var invalidArticleId = 0;
+        var newUser = userService.register("test_username", "test_password");
+        var expectedUser = new LoggedInUser(newUser.getId(), newUser.getUsername(), newUser.getPassword(), true);
+        var bodyJson = """
+                {
+                  "title": "test_title_updated",
+                  "body": "test_body_updated"
+                }
+                """;
+
+        // ## Act ##
+        var actual = mockMvc.perform(
+                put("/articles/{articleId}", invalidArticleId)
+                        .with(csrf())
+                        .with(user(expectedUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyJson)
+        );
+
+        // ## Assert ##
+        actual
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value("リソースが見つかりません"))
+                .andExpect(jsonPath("$.instance").value("/articles/" + invalidArticleId))
+        ;
+    }
+
 //    @Test
 //    @DisplayName("POST /articles: リクエストの title フィールドがバリデーションNGのとき、400 BadRequest")
 //    void createArticles_400BadRequest() throws Exception {
