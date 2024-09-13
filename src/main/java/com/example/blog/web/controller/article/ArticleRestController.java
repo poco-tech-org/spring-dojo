@@ -1,12 +1,13 @@
 package com.example.blog.web.controller.article;
 
 import com.example.blog.api.ArticlesApi;
-import com.example.blog.model.*;
+import com.example.blog.model.ArticleDTO;
+import com.example.blog.model.ArticleForm;
+import com.example.blog.model.ArticleListDTO;
 import com.example.blog.security.LoggedInUser;
 import com.example.blog.service.article.ArticleService;
 import com.example.blog.web.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,18 +33,7 @@ public class ArticleRestController implements ArticlesApi {
                 form.getBody()
         );
 
-        var userDTO = new UserDTO();
-        userDTO.setId(newArticle.getAuthor().getId());
-        userDTO.setUsername(newArticle.getAuthor().getUsername());
-
-        var body = new ArticleDTO();
-        body.setId(newArticle.getId());
-        body.title(newArticle.getTitle());
-        body.body(newArticle.getBody());
-        body.setAuthor(userDTO);
-        body.setCreatedAt(newArticle.getCreatedAt());
-        body.setUpdatedAt(newArticle.getUpdatedAt());
-
+        var body = ArticleMapper.toArticleDTO(newArticle);
         var location = UriComponentsBuilder.fromPath("/articles/{id}")
                 .buildAndExpand(newArticle.getId())
                 .toUri();
@@ -58,17 +48,7 @@ public class ArticleRestController implements ArticlesApi {
     public ResponseEntity<ArticleListDTO> listArticles() {
         var items = articleService.findAll()
                 .stream()
-                .map(entity -> {
-                    var itemDto = new ArticleListItemDTO();
-                    BeanUtils.copyProperties(entity, itemDto);
-
-                    var userDto = new UserDTO();
-                    BeanUtils.copyProperties(entity.getAuthor(), userDto);
-
-                    itemDto.setAuthor(userDto);
-
-                    return itemDto;
-                })
+                .map(ArticleMapper::toArticleListItemDTO)
                 .toList();
 
         var body = new ArticleListDTO();
@@ -81,16 +61,8 @@ public class ArticleRestController implements ArticlesApi {
     @Override
     public ResponseEntity<ArticleDTO> getArticle(Long articleId) {
         return articleService.findById(articleId)
-                .map(entity -> {
-                    var userDTO = new UserDTO();
-                    BeanUtils.copyProperties(entity.getAuthor(), userDTO);
-
-                    var body = new ArticleDTO();
-                    BeanUtils.copyProperties(entity, body);
-                    body.setAuthor(userDTO);
-
-                    return ResponseEntity.ok(body);
-                })
+                .map(ArticleMapper::toArticleDTO)
+                .map(ResponseEntity::ok)
                 .orElseThrow(ResourceNotFoundException::new);
     }
 
@@ -105,18 +77,13 @@ public class ArticleRestController implements ArticlesApi {
                 .getPrincipal();
 
         return articleService.update(
-                loggedInUser.getUserId(),
-                articleId,
-                form.getTitle(),
-                form.getBody()
-        ).map(updatedEntity -> {
-            var userDTO = new UserDTO();
-            BeanUtils.copyProperties(updatedEntity.getAuthor(), userDTO);
-            var body = new ArticleDTO();
-            BeanUtils.copyProperties(updatedEntity, body);
-            body.setAuthor(userDTO);
-
-            return ResponseEntity.ok(body);
-        }).orElseThrow(ResourceNotFoundException::new);
+                        loggedInUser.getUserId(),
+                        articleId,
+                        form.getTitle(),
+                        form.getBody()
+                )
+                .map(ArticleMapper::toArticleDTO)
+                .map(ResponseEntity::ok)
+                .orElseThrow(ResourceNotFoundException::new);
     }
 }
