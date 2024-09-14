@@ -164,6 +164,45 @@ class ArticleRestControllerUpdateArticleTest {
                 .andExpect(jsonPath("$.detail").value("リソースへのアクセスが拒否されました"))
                 .andExpect(jsonPath("$.instance").value("/articles/" + existingArticle.getId()))
         ;
-
     }
+
+    @Test
+    @DisplayName("PUT /articles/{articleId}: リクエストに CSRF トークンが付加されていないとき 403 Forbidden を返す")
+    void updateArticle_403Forbidden_csrf() throws Exception {
+        // ## Arrange ##
+        when(mockDateTimeService.now())
+                .thenReturn(TestDateTimeUtil.of(2020, 1, 1, 10, 20, 30))
+                .thenReturn(TestDateTimeUtil.of(2020, 2, 1, 10, 20, 30));
+
+        var newUser = userService.register("test_username", "test_password");
+        var existingArticle = articleService.create(newUser.getId(), "test_title", "test_body");
+
+        var expectedUser = new LoggedInUser(newUser.getId(), newUser.getUsername(), newUser.getPassword(), true);
+        var bodyJson = """
+                {
+                  "title": "test_title_updated",
+                  "body": "test_body_updated"
+                }
+                """;
+
+        // ## Act ##
+        var actual = mockMvc.perform(
+                put("/articles/{articleId}", existingArticle.getId())
+                        // .with(csrf())
+                        .with(user(expectedUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyJson)
+        );
+
+        // ## Assert ##
+        actual
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Forbidden"))
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.detail").value("CSRFトークンが不正です"))
+                .andExpect(jsonPath("$.instance").value("/articles/" + existingArticle.getId()))
+        ;
+    }
+
 }
