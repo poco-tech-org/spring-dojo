@@ -1,10 +1,8 @@
 package com.example.blog.web.advise;
 
-import com.example.blog.model.BadRequest;
-import com.example.blog.model.ErrorDetail;
-import com.example.blog.model.InternalServerError;
-import com.example.blog.model.NotFound;
-import com.example.blog.web.exception.ResourceNotFoundException;
+import com.example.blog.model.*;
+import com.example.blog.service.exception.UnauthorizedResourceAccessException;
+import com.example.blog.service.exception.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
@@ -73,5 +71,19 @@ public class ExceptionHandlerAdvise {
                 .status(HttpStatus.NOT_FOUND)
                 .contentType(MediaType.APPLICATION_PROBLEM_JSON)
                 .body(new NotFound().instance(URI.create(request.getRequestURI())));
+    }
+
+    @ExceptionHandler(UnauthorizedResourceAccessException.class)
+    public ResponseEntity<Forbidden> handleUnauthorizedResourceAccessException(
+            UnauthorizedResourceAccessException e,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                .body(new Forbidden()
+                        .detail("リソースへのアクセスが拒否されました")
+                        .instance(URI.create(request.getRequestURI()))
+                );
     }
 }
