@@ -126,89 +126,44 @@ class ArticleRestControllerUpdateArticleTest {
         ;
     }
 
-//    @Test
-//    @DisplayName("POST /articles: リクエストの title フィールドがバリデーションNGのとき、400 BadRequest")
-//    void createArticles_400BadRequest() throws Exception {
-//        // ## Arrange ##
-//        var newUser = userService.register("test_username", "test_password");
-//        var expectedUser = new LoggedInUser(newUser.getId(), newUser.getUsername(), newUser.getPassword(), true);
-//        var bodyJson = """
-//                {
-//                  "title": "",
-//                  "body": "OK_body"
-//                }
-//                """;
-//
-//        // ## Act ##
-//        var actual = mockMvc.perform(
-//                post("/articles")
-//                        .with(csrf())
-//                        .with(user(expectedUser))
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(bodyJson)
-//        );
-//
-//        // ## Assert ##
-//        actual
-//                .andExpect(status().isBadRequest())
-//                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-//                .andExpect(jsonPath("$.title").value("Bad Request"))
-//                .andExpect(jsonPath("$.status").value(400))
-//                .andExpect(jsonPath("$.detail").value("Invalid request content."))
-//                .andExpect(jsonPath("$.type").value("about:blank"))
-//                .andExpect(jsonPath("$.instance").isEmpty())
-//                .andExpect(jsonPath("$.errors", hasItem(
-//                        allOf(
-//                                hasEntry("pointer", "#/title"),
-//                                hasEntry("detail", "タイトルは1文字以上255文字以内で入力してください。")
-//                        )
-//                )))
-//        ;
-//    }
-//
-//    @Test
-//    @DisplayName("POST /articles: 未ログインのとき、401 Unauthorized を返す")
-//    void createArticles_401Unauthorized() throws Exception {
-//        // ## Arrange ##
-//
-//        // ## Act ##
-//        var actual = mockMvc.perform(
-//                post("/articles")
-//                        .with(csrf())
-//                // .with(user("user1")) // 未ログイン状態
-//        );
-//
-//        // ## Assert ##
-//        actual
-//                .andExpect(status().isUnauthorized())
-//                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-//                .andExpect(jsonPath("$.title").value("Unauthorized"))
-//                .andExpect(jsonPath("$.status").value(401))
-//                .andExpect(jsonPath("$.detail").value("リクエストを実行するにはログインが必要です"))
-//                .andExpect(jsonPath("$.instance").value("/articles"))
-//        ;
-//    }
-//
-//    @Test
-//    @DisplayName("POST /articles: リクエストに CSRF トークンが付加されていないとき 403 Forbidden を返す")
-//    void createArticles_403Forbidden() throws Exception {
-//        // ## Arrange ##
-//
-//        // ## Act ##
-//        var actual = mockMvc.perform(
-//                post("/articles")
-//                        // .with(csrf()) // CSRF トークンを付加しない
-//                        .with(user("user1"))
-//        );
-//
-//        // ## Assert ##
-//        actual
-//                .andExpect(status().isForbidden())
-//                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-//                .andExpect(jsonPath("$.title").value("Forbidden"))
-//                .andExpect(jsonPath("$.status").value(403))
-//                .andExpect(jsonPath("$.detail").value("CSRFトークンが不正です"))
-//                .andExpect(jsonPath("$.instance").value("/articles"))
-//        ;
-//    }
+    @Test
+    @DisplayName("PUT /articles/{articleId}: 自分が作成した記事以外の記事を編集しようとしたとき 403 を返す")
+    void updateArticle_403Forbidden_authorId() throws Exception {
+        // ## Arrange ##
+        when(mockDateTimeService.now())
+                .thenReturn(TestDateTimeUtil.of(2020, 1, 1, 10, 20, 30))
+                .thenReturn(TestDateTimeUtil.of(2020, 2, 1, 10, 20, 30));
+
+        var creator = userService.register("test_username1", "test_password1");
+        var existingArticle = articleService.create(creator.getId(), "test_title", "test_body");
+
+        var otherUser = userService.register("test_username2", "test_password2");
+        var loggedInOtherUser = new LoggedInUser(otherUser.getId(), otherUser.getUsername(), otherUser.getPassword(), true);
+        var bodyJson = """
+                {
+                  "title": "test_title_updated",
+                  "body": "test_body_updated"
+                }
+                """;
+
+        // ## Act ##
+        var actual = mockMvc.perform(
+                put("/articles/{articleId}", existingArticle.getId())
+                        .with(csrf())
+                        .with(user(loggedInOtherUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyJson)
+        );
+
+        // ## Assert ##
+        actual
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Forbidden"))
+                .andExpect(jsonPath("$.status").value(403))
+                .andExpect(jsonPath("$.detail").value("リソースへのアクセスが拒否されました"))
+                .andExpect(jsonPath("$.instance").value("/articles/" + existingArticle.getId()))
+        ;
+
+    }
 }
