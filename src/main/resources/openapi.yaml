@@ -270,9 +270,6 @@ components:
         [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html) に準拠しています。
       type: object
       properties:
-        type:
-          type: string
-          format: uri
         title:
           type: string
         status:
