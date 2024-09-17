@@ -205,4 +205,42 @@ class ArticleRestControllerUpdateArticleTest {
         ;
     }
 
+    @Test
+    @DisplayName("PUT /articles/{articleId}: 未ログインのとき、401 Unauthorized を返す")
+    void putArticle_401Unauthorized() throws Exception {
+        // ## Arrange ##
+        when(mockDateTimeService.now())
+                .thenReturn(TestDateTimeUtil.of(2020, 1, 1, 10, 20, 30))
+                .thenReturn(TestDateTimeUtil.of(2020, 2, 1, 10, 20, 30));
+
+        var newUser = userService.register("test_username", "test_password");
+        var existingArticle = articleService.create(newUser.getId(), "test_title", "test_body");
+        var bodyJson = """
+                {
+                  "title": "test_title_updated",
+                  "body": "test_body_updated"
+                }
+                """;
+
+        // ## Act ##
+        var actual = mockMvc.perform(
+                put("/articles/{articleId}", existingArticle.getId())
+                        .with(csrf())
+                        //.with(user(expectedUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyJson)
+        );
+
+        // ## Assert ##
+        actual
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Unauthorized"))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.detail").value("リクエストを実行するにはログインが必要です"))
+                .andExpect(jsonPath("$.instance").value("/articles/" + existingArticle.getId()))
+        ;
+    }
+
+
 }
