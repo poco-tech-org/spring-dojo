@@ -17,8 +17,7 @@ import static org.hamcrest.Matchers.aMapWithSize;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -126,4 +125,43 @@ class ArticleRestController500InternalServerErrorTest {
                 .andExpect(jsonPath("$", aMapWithSize(4)))
         ;
     }
+
+    @Test
+    @DisplayName("PUT /articles: 500 InternalServerError で stacktrace が露出しない")
+    void putArticle_500() throws Exception {
+        // ## Arrange ##
+        var userId = 999L;
+        var articleId = 9999L;
+        var title = "test_title";
+        var body = "test_body";
+        when(articleService.update(userId, articleId, title, body)).thenThrow(RuntimeException.class);
+
+        var bodyJson = """
+                {
+                  "title": "%s",
+                  "body": "%s"
+                }
+                """.formatted(title, body);
+
+        // ## Act ##
+        var actual = mockMvc.perform(
+                put("/articles/{articleId}", articleId)
+                        .with(csrf())
+                        .with(user(new LoggedInUser(userId, "test_username", "", true)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyJson)
+        );
+
+        // ## Assert ##
+        actual
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Internal Server Error"))
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.detail").isEmpty())
+                .andExpect(jsonPath("$.instance").value("/articles/" + articleId))
+                .andExpect(jsonPath("$", aMapWithSize(4)))
+        ;
+    }
+
 }
