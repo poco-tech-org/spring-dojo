@@ -234,4 +234,21 @@ class ArticleServiceTest {
         assertThat(actual).isEmpty();
     }
 
+    @Test
+    @DisplayName("delete: 指定された ID の記事が見つからないとき、ResourceNotFoundException を throw する")
+    void delete_throwResourceNotFoundException() {
+        // ## Arrange ##
+        var author = new UserEntity();
+        author.setUsername("test_user1");
+        author.setPassword("test_password1");
+        author.setEnabled(true);
+        userRepository.insert(author);
+
+        var invalidArticleId = 0L;
+
+        // ## Act & Assert ##
+        assertThrows(ResourceNotFoundException.class, () -> {
+            cut.delete(author.getId(), invalidArticleId);
+        });
+    }
 }
