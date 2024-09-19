@@ -296,4 +296,30 @@ class ArticleRepositoryTest {
                     .isEqualTo(articleToCreate);
         });
     }
+
+    @Test
+    @DisplayName("delete: 指定された ID の記事を削除する")
+    void delete_success() {
+        // ## Arrange ##
+        var author = new UserEntity(null, "test_username", "test_password", true);
+        userRepository.insert(author);
+
+        var existingArticle = new ArticleEntity(
+                null,
+                "test_title",
+                "test_body",
+                author,
+                TestDateTimeUtil.of(2020, 1, 10, 10, 20, 30),
+                TestDateTimeUtil.of(2020, 1, 10, 10, 20, 30)
+        );
+        cut.insert(existingArticle);
+
+        // ## Act ##
+        cut.delete(existingArticle);
+
+        // ## Assert ##
+        var actual = cut.selectById(existingArticle.getId());
+        assertThat(actual).isEmpty();
+    }
+
 }
