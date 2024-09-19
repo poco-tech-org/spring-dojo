@@ -162,24 +162,17 @@ class ArticleRestControllerDeleteArticleTest {
     }
 
     @Test
-    @DisplayName("PUT /articles/{articleId}: 指定されたIDの記事が存在しないとき、404を返す")
-    void updateArticle_404NotFound() throws Exception {
+    @DisplayName("DELETE /articles/{articleId}: 指定されたIDの記事が存在しないとき、404を返す")
+    void deleteArticle_404NotFound() throws Exception {
         // ## Arrange ##
         var invalidArticleId = 0;
-        var bodyJson = """
-                {
-                  "title": "test_title_updated",
-                  "body": "test_body_updated"
-                }
-                """;
 
         // ## Act ##
         var actual = mockMvc.perform(
-                put("/articles/{articleId}", invalidArticleId)
+                delete("/articles/{articleId}", invalidArticleId)
                         .with(csrf())
                         .with(user(loggedInAuthor))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(bodyJson)
         );
 
         // ## Assert ##
