@@ -361,4 +361,45 @@ class ArticleRepositoryTest {
         });
     }
 
+    @Test
+    @DisplayName("delete: 著者以外のユーザーIDが指定されているとき、削除しない")
+    void delete_invalidAuthorId() {
+        // ## Arrange ##
+        var author = new UserEntity(null, "test_username1", "test_password1", true);
+        userRepository.insert(author);
+
+        var otherUser = new UserEntity(null, "test_username2", "test_password2", true);
+        userRepository.insert(otherUser);
+
+        var existingArticle = new ArticleEntity(
+                null,
+                "test_title",
+                "test_body",
+                author,
+                TestDateTimeUtil.of(2020, 1, 10, 10, 20, 30),
+                TestDateTimeUtil.of(2020, 1, 10, 10, 20, 30)
+        );
+        cut.insert(existingArticle);
+
+        var articleToDelete = new ArticleEntity(
+                existingArticle.getId(),
+                existingArticle.getTitle(),
+                existingArticle.getBody(),
+                otherUser,
+                existingArticle.getCreatedAt(),
+                existingArticle.getUpdatedAt()
+        );
+
+        // ## Act ##
+        cut.delete(articleToDelete);
+
+        // ## Assert ##
+        var actual = cut.selectById(existingArticle.getId());
+        assertThat(actual).hasValueSatisfying(actualArticle -> {
+            assertThat(actualArticle)
+                    .usingRecursiveComparison()
+                    .ignoringFields("author.password")
+                    .isEqualTo(existingArticle);
+        });
+    }
 }
