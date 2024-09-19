@@ -250,4 +250,50 @@ class ArticleRepositoryTest {
         });
     }
 
+    @Test
+    @DisplayName("update: 著者以外のユーザーIDが指定されているとき、更新しない")
+    void update_invalidAuthorId() {
+        // ## Arrange ##
+        var expectedTitle = "test_title_updated";
+        var expectedBody = "test_body_updated";
+        var expectedCreatedAt = TestDateTimeUtil.of(2020, 1, 10, 10, 20, 30);
+        var expectedUpdatedAt = expectedCreatedAt.plusDays(1);
+
+        var author = new UserEntity(null, "test_username1", "test_password1", true);
+        userRepository.insert(author);
+
+        var otherUser = new UserEntity(null, "test_username2", "test_password2", true);
+        userRepository.insert(otherUser);
+
+        var articleToCreate = new ArticleEntity(
+                null,
+                "test_title",
+                "test_body",
+                author,
+                expectedCreatedAt,
+                expectedCreatedAt // 記事を新規作成したため createAt = updatedAt
+        );
+        cut.insert(articleToCreate);
+
+        var articleToUpdate = new ArticleEntity(
+                articleToCreate.getId(),
+                expectedTitle,
+                expectedBody,
+                otherUser,
+                articleToCreate.getCreatedAt(),
+                expectedUpdatedAt
+        );
+
+        // ## Act ##
+        cut.update(articleToUpdate);
+
+        // ## Assert ##
+        var actual = cut.selectById(articleToCreate.getId());
+        assertThat(actual).hasValueSatisfying(actualArticle -> {
+            assertThat(actualArticle)
+                    .usingRecursiveComparison()
+                    .ignoringFields("author.password")
+                    .isEqualTo(articleToCreate);
+        });
+    }
 }
