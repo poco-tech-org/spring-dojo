@@ -210,4 +210,28 @@ class ArticleServiceTest {
             cut.update(otherUser.getId(), existingArticle.getId(), "test_title_updated", "test_body_updated");
         });
     }
+
+    @Test
+    @DisplayName("delete: 記事の削除に成功する")
+    void delete_success() {
+        // ## Arrange ##
+        when(mockDateTimeService.now())
+                .thenReturn(TestDateTimeUtil.of(2020, 1, 10, 10, 10, 10));
+
+        var author = new UserEntity();
+        author.setUsername("test_user1");
+        author.setPassword("test_password1");
+        author.setEnabled(true);
+        userRepository.insert(author);
+
+        var existingArticle = cut.create(author.getId(), "test_title", "test_body");
+
+        // ## Act ##
+        cut.delete(author.getId(), existingArticle.getId());
+
+        // ## Assert ##
+        var actual = articleRepository.selectById(existingArticle.getId());
+        assertThat(actual).isEmpty();
+    }
+
 }
