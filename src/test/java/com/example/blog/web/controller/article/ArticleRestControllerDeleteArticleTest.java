@@ -88,6 +88,30 @@ class ArticleRestControllerDeleteArticleTest {
     }
 
     @Test
+    @DisplayName("DELETE /articles/{articleId}: 未ログインのとき、401 Unauthorized を返す")
+    void deleteArticle_401Unauthorized() throws Exception {
+        // ## Arrange ##
+
+        // ## Act ##
+        var actual = mockMvc.perform(
+                delete("/articles/{articleId}", existingArticle.getId())
+                        .with(csrf())
+                        //.with(user(loggedInAuthor))
+                        .contentType(MediaType.APPLICATION_JSON)
+        );
+
+        // ## Assert ##
+        actual
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Unauthorized"))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.detail").value("リクエストを実行するにはログインが必要です"))
+                .andExpect(jsonPath("$.instance").value("/articles/" + existingArticle.getId()))
+        ;
+    }
+
+    @Test
     @DisplayName("PUT /articles/{articleId}: 指定されたIDの記事が存在しないとき、404を返す")
     void updateArticle_404NotFound() throws Exception {
         // ## Arrange ##
@@ -179,37 +203,6 @@ class ArticleRestControllerDeleteArticleTest {
                 .andExpect(jsonPath("$.title").value("Forbidden"))
                 .andExpect(jsonPath("$.status").value(403))
                 .andExpect(jsonPath("$.detail").value("CSRFトークンが不正です"))
-                .andExpect(jsonPath("$.instance").value("/articles/" + existingArticle.getId()))
-        ;
-    }
-
-    @Test
-    @DisplayName("PUT /articles/{articleId}: 未ログインのとき、401 Unauthorized を返す")
-    void updateArticle_401Unauthorized() throws Exception {
-        // ## Arrange ##
-        var bodyJson = """
-                {
-                  "title": "test_title_updated",
-                  "body": "test_body_updated"
-                }
-                """;
-
-        // ## Act ##
-        var actual = mockMvc.perform(
-                put("/articles/{articleId}", existingArticle.getId())
-                        .with(csrf())
-                        //.with(user(loggedInAuthor))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(bodyJson)
-        );
-
-        // ## Assert ##
-        actual
-                .andExpect(status().isUnauthorized())
-                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.title").value("Unauthorized"))
-                .andExpect(jsonPath("$.status").value(401))
-                .andExpect(jsonPath("$.detail").value("リクエストを実行するにはログインが必要です"))
                 .andExpect(jsonPath("$.instance").value("/articles/" + existingArticle.getId()))
         ;
     }
