@@ -65,4 +65,16 @@ public class ArticleService {
 
         return entity;
     }
+
+    @Transactional
+    public void delete(long loggedInUserId, Long articleId) {
+        var entity = findById(articleId)
+                .orElseThrow(ResourceNotFoundException::new);
+
+        if (entity.getAuthor().getId() != loggedInUserId) {
+            throw new UnauthorizedResourceAccessException();
+        }
+
+        articleRepository.delete(entity);
+    }
 }
