@@ -14,6 +14,8 @@ tags:
     description: ログインとログアウトの API
   - name: articles
     description: ブログ記事関連の API
+  - name: article-comments
+    description: ブログ記事のコメント関連の API
 paths:
   /csrf-cookie:
     get:
@@ -261,6 +263,47 @@ paths:
           $ref: "#/components/responses/NotFoundResponse"
         '500':
           $ref: "#/components/responses/InternalServerErrorResponse"
+  /articles/{articleId}/comments:
+    post:
+      tags: [ article-comments ]
+      summary: 記事のコメントを作成します
+      description: 指定した記事に対するコメントをログインユーザーで作成します
+      operationId: createComment
+      parameters:
+        - name: articleId
+          in: path
+          description: 記事のID
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArticleCommentForm"
+      security:
+        - cookieAuth: [ ]
+        - csrfProtectionHeader: [ ]
+        - csrfProtectionCookie: [ ]
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArticleCommentDTO"
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '500':
+          $ref: "#/components/responses/InternalServerErrorResponse"
 components:
   schemas:
     InternalServerError:
@@ -456,6 +499,27 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ArticleListItemDTO"
+    ArticleCommentForm:
+      type: object
+      required:
+        - body
+      properties:
+        body:
+          description: ブログ記事へのコメントの本文
+          type: string
+    ArticleCommentDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        body:
+          type: string
+        author:
+          $ref: "#/components/schemas/UserDTO"
+        createdAt:
+          type: string
+          format: date-time
   responses:
     InternalServerErrorResponse:
       description: Internal Server Error
