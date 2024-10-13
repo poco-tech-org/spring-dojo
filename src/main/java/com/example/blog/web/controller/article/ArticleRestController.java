@@ -1,10 +1,9 @@
 package com.example.blog.web.controller.article;
 
 import com.example.blog.api.ArticlesApi;
-import com.example.blog.model.ArticleDTO;
-import com.example.blog.model.ArticleForm;
-import com.example.blog.model.ArticleListDTO;
+import com.example.blog.model.*;
 import com.example.blog.security.LoggedInUser;
+import com.example.blog.service.article.ArticleCommentService;
 import com.example.blog.service.article.ArticleService;
 import com.example.blog.service.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class ArticleRestController implements ArticlesApi {
 
     private final ArticleService articleService;
+    private final ArticleCommentService articleCommentService;
 
     @Override
     public ResponseEntity<ArticleDTO> createArticle(ArticleForm form) {
@@ -97,5 +97,33 @@ public class ArticleRestController implements ArticlesApi {
         articleService.delete(loggedInUser.getUserId(), articleId);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<ArticleCommentDTO> createComment(
+            Long articleId,
+            ArticleCommentForm form
+    ) {
+        var loggedInUser = (LoggedInUser) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+
+        var newComment = articleCommentService.create(
+                loggedInUser.getUserId(),
+                articleId,
+                form.getBody()
+        );
+
+        var body = ArticleCommentMapper.toDTO(newComment);
+        var location = UriComponentsBuilder
+                .fromPath("/articles/{articleId}/comments/{commentId}")
+                .buildAndExpand(articleId, newComment.getId())
+                .toUri();
+
+        return ResponseEntity
+                .created(location)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body);
     }
 }
