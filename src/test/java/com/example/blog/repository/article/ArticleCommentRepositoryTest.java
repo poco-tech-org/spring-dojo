@@ -6,12 +6,12 @@ import com.example.blog.service.article.ArticleCommentEntity;
 import com.example.blog.service.article.ArticleEntity;
 import com.example.blog.service.user.UserEntity;
 import com.example.blog.util.TestDateTimeUtil;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 @MybatisDefaultDatasourceTest
 class ArticleCommentRepositoryTest {
@@ -23,10 +23,10 @@ class ArticleCommentRepositoryTest {
     @Autowired
     private ArticleRepository articleRepository;
 
-    @Test
-    @DisplayName("insert：記事データの作成に成功する")
-    void insert_success() {
-        // ## Arrange ##
+    private ArticleCommentEntity comment;
+
+    @BeforeEach
+    void beforeEach() {
         var articleAuthor = new UserEntity(
                 null,
                 "test_username1",
@@ -53,13 +53,19 @@ class ArticleCommentRepositoryTest {
         );
         userRepository.insert(commentAuthor);
 
-        var comment = new ArticleCommentEntity(
+        comment = new ArticleCommentEntity(
                 null,
                 "test_comment_body",
                 article,
                 commentAuthor,
                 TestDateTimeUtil.of(2022, 1, 1, 10, 30, 40)
         );
+    }
+
+    @Test
+    @DisplayName("insert：記事データの作成に成功する")
+    void insert_success() {
+        // ## Arrange ##
 
         // ## Act ##
         cut.insert(comment);
@@ -76,5 +82,41 @@ class ArticleCommentRepositoryTest {
                     .isEqualTo(comment);
         });
 
+    }
+
+    @Test
+    @DisplayName("selectById：指定した記事コメントIDが存在するとき、記事コメントを返す")
+    void selectById_success() {
+        // ## Arrange ##
+        cut.insert(comment);
+
+        // ## Act ##
+        var actualOpt = cut.selectById(comment.getId());
+
+        // ## Assert ##
+        assertThat(actualOpt).hasValueSatisfying(actualEntity -> {
+            assertThat(actualEntity)
+                    .usingRecursiveComparison()
+                    .ignoringFields(
+                            "author.password",
+                            "article.author.password"
+                    )
+                    .isEqualTo(comment);
+        });
+
+    }
+
+    @Test
+    @DisplayName("selectById：指定した記事コメントIDが存在しないとき、空の Optional を返す")
+    void selectById_returnEmpty() {
+        // ## Arrange ##
+        cut.insert(comment); // dummy record
+        var notInsertedId = 0;
+
+        // ## Act ##
+        var actualOpt = cut.selectById(notInsertedId);
+
+        // ## Assert ##
+        assertThat(actualOpt).isEmpty();
     }
 }
