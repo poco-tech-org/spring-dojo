@@ -136,4 +136,35 @@ class ArticleRestControllerCreateArticleCommentTest {
                 )))
         ;
     }
+
+    @Test
+    @DisplayName("POST /articles/{articleId}/comments: 未ログインのとき、401 Unauthorized を返す")
+    void createArticleComments_401Unauthorized() throws Exception {
+        // ## Arrange ##
+        var bodyJson = """
+                {
+                  "body": "test_body"
+                }
+                """;
+
+        // ## Act ##
+        var actual = mockMvc.perform(
+                post("/articles/{articleId}/comments", article.getId())
+                        .with(csrf())
+                        // .with(user(loggedInCommentAuthor)) // 未ログイン状態
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyJson)
+        );
+
+        // ## Assert ##
+        actual
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Unauthorized"))
+                .andExpect(jsonPath("$.status").value(401))
+                .andExpect(jsonPath("$.detail").value("リクエストを実行するにはログインが必要です"))
+                .andExpect(jsonPath("$.instance").value("/articles/%d/comments".formatted(article.getId())))
+        ;
+    }
+
 }
