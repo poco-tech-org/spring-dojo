@@ -185,6 +185,7 @@ class ArticleRestControllerCreateArticleCommentTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(bodyJson)
         );
+
         // ## Assert ##
         actual
                 .andExpect(status().isForbidden())
@@ -195,4 +196,36 @@ class ArticleRestControllerCreateArticleCommentTest {
                 .andExpect(jsonPath("$.instance").value("/articles/%d/comments".formatted(article.getId())))
         ;
     }
+
+    @Test
+    @DisplayName("POST /articles/{articleId}/comments: 指定されたIDの記事が存在しないとき、404を返す")
+    void deleteArticle_404NotFound() throws Exception {
+        // ## Arrange ##
+        var invalidArticleId = 0;
+        var bodyJson = """
+                {
+                  "body": "test_body"
+                }
+                """;
+
+        // ## Act ##
+        var actual = mockMvc.perform(
+                post("/articles/{articleId}/comments", invalidArticleId)
+                        .with(csrf())
+                        .with(user(loggedInCommentAuthor))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(bodyJson)
+        );
+
+        // ## Assert ##
+        actual
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.title").value("Not Found"))
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.detail").value("リソースが見つかりません"))
+                .andExpect(jsonPath("$.instance").value("/articles/%d/comments".formatted(invalidArticleId)))
+        ;
+    }
+
 }
