@@ -9,6 +9,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ArticleCommentService {
@@ -37,5 +39,9 @@ public class ArticleCommentService {
         return articleCommentRepository
                 .selectById(newComment.getId())
                 .orElseThrow(() -> new IllegalStateException("never reached"));
+    }
+
+    public List<ArticleCommentEntity> findByArticleId(long articleId) {
+        return articleCommentRepository.selectByArticleId(articleId);
     }
 }

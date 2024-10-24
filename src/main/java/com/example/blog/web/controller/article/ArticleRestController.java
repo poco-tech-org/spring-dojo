@@ -126,4 +126,18 @@ public class ArticleRestController implements ArticlesApi {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(body);
     }
+
+    @Override
+    public ResponseEntity<ArticleCommentListDTO> listArticleComments(Long articleId) {
+        var commentList = articleCommentService.findByArticleId(articleId)
+                .stream()
+                .map(ArticleCommentMapper::toDTO)
+                .toList();
+
+        var body = new ArticleCommentListDTO();
+        body.comments(commentList);
+
+        return ResponseEntity
+                .ok(body);
+    }
 }
