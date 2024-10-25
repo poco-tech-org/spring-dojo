@@ -24,6 +24,7 @@ class ArticleCommentRepositoryTest {
     private ArticleRepository articleRepository;
 
     private ArticleEntity article1;
+    private ArticleEntity article2;
     private ArticleCommentEntity article1Comment1;
     private ArticleCommentEntity article1Comment2;
     private ArticleCommentEntity article2Comment1;
@@ -91,7 +92,7 @@ class ArticleCommentRepositoryTest {
         );
         userRepository.insert(articleAuthor2);
 
-        var article2 = new ArticleEntity(
+        article2 = new ArticleEntity(
                 null,
                 "test_title2",
                 "test_body2",
@@ -199,5 +200,35 @@ class ArticleCommentRepositoryTest {
                 .ignoringFields("author.password",
                         "article.author.password")
                 .isEqualTo(article1Comment2);
+    }
+
+    @Test
+    @DisplayName("selectByArticleId：指定した記事IDが存在しないとき、空のリストを返す")
+    void selectByArticleId_invalidArticleId() {
+        // ## Arrange ##
+        cut.insert(article1Comment1);
+        cut.insert(article1Comment2);
+        cut.insert(article2Comment1);
+
+        // ## Act ##
+        var actual = cut.selectByArticleId(0);
+
+        // ## Assert ##
+        assertThat(actual).isEmpty();
+    }
+
+    @Test
+    @DisplayName("selectByArticleId：指定した記事IDにコメントが存在しないとき、空のリストを返す")
+    void selectByArticleId_articleDoesNotHaveComments() {
+        // ## Arrange ##
+        cut.insert(article1Comment1);
+        cut.insert(article1Comment2);
+        // cut.insert(article2Comment1);
+
+        // ## Act ##
+        var actual = cut.selectByArticleId(article2.getId());
+
+        // ## Assert ##
+        assertThat(actual).isEmpty();
     }
 }
