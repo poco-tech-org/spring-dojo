@@ -95,7 +95,7 @@ class ArticleRestControllerListArticleCommentsTest {
 
     @Test
     @DisplayName("GET /articles/{articleId}/comments: 指定されたIDの記事が存在しないとき、404を返す")
-    void deleteArticle_404NotFound() throws Exception {
+    void listArticleComments_404NotFound() throws Exception {
         // ## Arrange ##
         var invalidArticleId = 0;
 
