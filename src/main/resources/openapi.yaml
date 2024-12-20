@@ -119,6 +119,49 @@ paths:
           $ref: "#/components/responses/BadRequestResponse"
         '500':
           $ref: "#/components/responses/InternalServerErrorResponse"
+  /users/me/image-upload-url:
+    get:
+      description: ユーザーのプロフィール画像をアップロードするためのURLを取得します
+      tags: [ users ]
+      operationId: getProfileImageUploadURL
+      security:
+        - cookieAuth: [ ]
+      parameters:
+        - name: fileName
+          in: query
+          description: アップロードするファイル名
+          required: true
+          schema:
+            type: string
+            example: my-profile.png
+        - name: contentType
+          in: query
+          description: アップロードするファイルの MIME タイプ
+          required: true
+          schema:
+            type: string
+            example: image/png
+        - name: contentLength
+          in: query
+          description: アップロードするファイルのサイズ
+          required: true
+          schema:
+            type: integer
+            format: int64
+            example: 104892
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfileImageUploadURLDTO"
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '500':
+          $ref: "#/components/responses/InternalServerErrorResponse"
   /articles:
     post:
       tags: [ articles ]
@@ -439,6 +482,16 @@ components:
         username:
           type: string
           example: username123
+    UserProfileImageUploadURLDTO:
+      type: object
+      properties:
+        imageUploadUrl:
+          type: string
+          format: uri
+          example: http://localhost:4566/profile-images/user1_20241210T224934Z.png?xxx=yyy
+        imagePath:
+          type: string
+          example: user1_20241210T224934Z.png
     ArticleForm:
       type: object
       required:
