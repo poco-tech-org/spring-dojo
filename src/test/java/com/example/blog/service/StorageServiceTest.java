@@ -27,6 +27,6 @@ class StorageServiceTest {
         var actual = cut.createUploadURL("test.png", "image/png", 111L);
 
         // ## Assert ##
-        assertThat(actual).isNotBlank();
+        assertThat(actual).isNotNull();
     }
 }
