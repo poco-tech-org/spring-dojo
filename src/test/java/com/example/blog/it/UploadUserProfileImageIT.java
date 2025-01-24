@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import java.net.URI;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,8 +51,24 @@ public class UploadUserProfileImageIT {
         var uploadUrlDTO = getUserProfileImageUploadURL(sessionId);
 
         // S3へのファイルアップロード
+        uploadImage(uploadUrlDTO.getImageUploadUrl());
 
         // ファイルパスの登録
+    }
+
+    private void uploadImage(URI uploadUrl) {
+        // ## Arrange ##
+        var imageBytes = "将来画像に置き換える".getBytes();
+
+        // ## Act ##
+        var responseSpec = webTestClient
+                .put().uri(uploadUrl)
+                .contentType(MediaType.IMAGE_PNG)
+                .bodyValue(imageBytes)
+                .exchange();
+
+        // ## Assert ##
+        responseSpec.expectStatus().isOk();
     }
 
     private String getCsrfCookie() {
@@ -125,7 +142,7 @@ public class UploadUserProfileImageIT {
         return sessionIdOpt.get().getValue();
     }
 
-    private void getUserProfileImageUploadURL(String loginSessionCookie) {
+    private UserProfileImageUploadURLDTO getUserProfileImageUploadURL(String loginSessionCookie) {
         // ## Act ##
         var responseSpec = webTestClient
                 .get().uri(uriBuilder -> uriBuilder
