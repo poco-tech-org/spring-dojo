@@ -1,5 +1,7 @@
 package com.example.blog.service;
 
+import com.example.blog.config.S3Properties;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -16,14 +18,21 @@ import java.util.Map;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class StorageService {
+
+    private final S3Properties s3Properties;
 
     public String createUploadURL(
             String fileName,
             String contentType,
             Long contentLength
     ) {
-        return createPresignedUrl("profile-images", fileName, Map.of());
+        return createPresignedUrl(
+                s3Properties.bucket().profileImages(),
+                fileName,
+                Map.of()
+        );
     }
 
     // ref. https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3-presign.html#put-presigned-object-part1
@@ -34,23 +43,27 @@ public class StorageService {
     ) {
         var builder = S3Presigner.builder()
                 .serviceConfiguration(
-                        S3Configuration
-                                .builder()
+                        S3Configuration.builder()
                                 .pathStyleAccessEnabled(true)
                                 .build()
                 )
                 .endpointOverride(
-                        URI.create("http://localhost:4566")
+                        URI.create(
+                                s3Properties.endpoint()
+                        )
                 )
                 .credentialsProvider(
-                        StaticCredentialsProvider
-                                .create(
-                                        AwsBasicCredentials
-                                                .create("test1", "test2")
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(
+                                        s3Properties.accessKey(),
+                                        s3Properties.secretKey()
                                 )
+                        )
                 )
                 .region(
-                        Region.of("ap-northeast-1")
+                        Region.of(
+                                s3Properties.region()
+                        )
                 );
 
         try (var presigner = builder.build()) {
