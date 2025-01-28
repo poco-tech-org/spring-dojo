@@ -1,8 +1,6 @@
 package com.example.blog.service;
 
 import com.example.blog.config.S3Properties;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -17,31 +15,14 @@ import java.time.Duration;
 import java.util.Map;
 
 @Service
-@Slf4j
-@RequiredArgsConstructor
 public class StorageService {
 
     private final S3Properties s3Properties;
+    private final S3Presigner s3Presigner;
 
-    public String createUploadURL(
-            String fileName,
-            String contentType,
-            Long contentLength
-    ) {
-        return createPresignedUrl(
-                s3Properties.bucket().profileImages(),
-                fileName,
-                Map.of()
-        );
-    }
-
-    // ref. https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3-presign.html#put-presigned-object-part1
-    private String createPresignedUrl(
-            String bucketName,
-            String keyName,
-            Map<String, String> metadata
-    ) {
-        var builder = S3Presigner.builder()
+    public StorageService(S3Properties s3Properties) {
+        this.s3Properties = s3Properties;
+        this.s3Presigner = S3Presigner.builder()
                 .serviceConfiguration(
                         S3Configuration.builder()
                                 .pathStyleAccessEnabled(true)
@@ -64,21 +45,39 @@ public class StorageService {
                         Region.of(
                                 s3Properties.region()
                         )
-                );
+                )
+                .build();
+    }
 
-        try (var presigner = builder.build()) {
-            var objectRequest = PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(keyName)
-                    .metadata(metadata)
-                    .build();
+    public String createUploadURL(
+            String fileName,
+            String contentType,
+            Long contentLength
+    ) {
+        return createPresignedUrl(
+                s3Properties.bucket().profileImages(),
+                fileName,
+                Map.of()
+        );
+    }
 
-            var presignRequest = PutObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(10))
-                    .putObjectRequest(objectRequest)
-                    .build();
+    // ref. https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/examples-s3-presign.html#put-presigned-object-part1
+    private String createPresignedUrl(
+            String bucketName,
+            String keyName,
+            Map<String, String> metadata
+    ) {
+        var objectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(keyName)
+                .metadata(metadata)
+                .build();
 
-            return presigner.presignPutObject(presignRequest).url().toString();
-        }
+        var presignRequest = PutObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(10))
+                .putObjectRequest(objectRequest)
+                .build();
+
+        return s3Presigner.presignPutObject(presignRequest).url().toString();
     }
 }
