@@ -47,9 +47,10 @@ public class UploadUserProfileImageIT {
         var sessionId = loginSuccess(xsrfToken);
 
         // Pre-signed URL の取得
-        getUserProfileImageUploadURL(sessionId);
+        var uploadUrlDTO = getUserProfileImageUploadURL(sessionId);
 
         // S3へのファイルアップロード
+        uploadUrlDTO.getImageUploadUrl();
 
         // ファイルパスの登録
     }
@@ -125,7 +126,9 @@ public class UploadUserProfileImageIT {
         return sessionIdOpt.get().getValue();
     }
 
-    private void getUserProfileImageUploadURL(String loginSessionCookie) {
+    private UserProfileImageUploadURLDTO getUserProfileImageUploadURL(
+            String loginSessionCookie
+    ) {
         // ## Act ##
         var responseSpec = webTestClient
                 .get().uri(uriBuilder -> uriBuilder
@@ -147,6 +150,9 @@ public class UploadUserProfileImageIT {
 
         assertThat(actualResponseBody).isNotNull();
         assertThat(actualResponseBody.getImagePath()).isNotBlank();
-        assertThat(actualResponseBody.getImageUploadUrl().toString()).isNotBlank();
+        assertThat(actualResponseBody.getImageUploadUrl())
+                .hasParameter("X-Amz-Expires", "600");
+
+        return actualResponseBody;
     }
 }
