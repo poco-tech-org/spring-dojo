@@ -2,11 +2,16 @@ package com.example.blog.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
 
@@ -20,7 +25,7 @@ public class StorageService {
             Long contentLength
     ) {
         return createPresignedUrl(
-                "test-bucket",
+                "profile-images",
                 "test-key",
                 Map.of()
         );
@@ -33,7 +38,22 @@ public class StorageService {
             String keyName,
             Map<String, String> metadata
     ) {
-        try (S3Presigner presigner = S3Presigner.create()) {
+        var builder = S3Presigner.builder()
+                .serviceConfiguration(
+                        S3Configuration.builder()
+                                .pathStyleAccessEnabled(true)
+                                .build())
+                .endpointOverride(
+                        URI.create("http://localhost:4566")
+                )
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create("test1", "test2")
+                        )
+                )
+                .region(Region.AP_NORTHEAST_1);
+
+        try (S3Presigner presigner = builder.build()) {
 
             PutObjectRequest objectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
