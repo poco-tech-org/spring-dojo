@@ -7,10 +7,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +25,7 @@ public class UploadUserProfileImageIT {
     private static final String TEST_PASSWORD = "password10";
     private static final String DUMMY_SESSION_ID = "session_id_1";
     private static final String SESSION_COOKIE_NAME = "SESSION";
+    private static final String TEST_IMAGE_PATH = "test.png";
 
     @Autowired
     private WebTestClient webTestClient;
@@ -39,7 +43,7 @@ public class UploadUserProfileImageIT {
     }
 
     @Test
-    public void integrationTest() {
+    public void integrationTest() throws IOException {
         //ユーザー作成
         var xsrfToken = getCsrfCookie();
         register(xsrfToken);
@@ -56,9 +60,11 @@ public class UploadUserProfileImageIT {
         // ファイルパスの登録
     }
 
-    private void uploadImage(URI uploadUrl) {
+    private void uploadImage(URI uploadUrl) throws IOException {
         // ## Arrange ##
-        var imageBytes = "将来画像に置き換える".getBytes();
+        var imageResource = new ClassPathResource(TEST_IMAGE_PATH);
+        var imageFile = imageResource.getFile();
+        var imageBytes = Files.readAllBytes(imageFile.toPath());
 
         // ## Act ##
         var responseSpec = webTestClient
@@ -142,12 +148,16 @@ public class UploadUserProfileImageIT {
         return sessionIdOpt.get().getValue();
     }
 
-    private UserProfileImageUploadURLDTO getUserProfileImageUploadURL(String loginSessionCookie) {
+    private UserProfileImageUploadURLDTO getUserProfileImageUploadURL(String loginSessionCookie) throws IOException {
+        // ## Arrange ##
+        var imageResource = new ClassPathResource(TEST_IMAGE_PATH);
+        var imageFile = imageResource.getFile();
+
         // ## Act ##
         var responseSpec = webTestClient
                 .get().uri(uriBuilder -> uriBuilder
                         .path("/users/me/image-upload-url")
-                        .queryParam("fileName", "my-profile.png")
+                        .queryParam("fileName", imageFile.getName())
                         .queryParam("contentType", "image.png")
                         .queryParam("contentLength", 104892)
                         .build()
