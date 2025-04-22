@@ -1,5 +1,6 @@
 package com.example.blog.it;
 
+import com.example.blog.config.S3Properties;
 import com.example.blog.model.UserProfileImageUploadURLDTO;
 import com.example.blog.service.user.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -10,6 +11,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
 import java.io.IOException;
 import java.net.URI;
@@ -31,6 +38,8 @@ public class UploadUserProfileImageIT {
     private WebTestClient webTestClient;
     @Autowired
     private UserService userService;
+    @Autowired
+    private S3Properties s3Properties;
 
     @BeforeEach
     public void beforeEach() {
@@ -75,6 +84,45 @@ public class UploadUserProfileImageIT {
 
         // ## Assert ##
         responseSpec.expectStatus().isOk();
+
+        // S3 にアップロードされているか確認する
+        try(var s3Client = createS3Client()) {
+            var request = GetObjectRequest.builder()
+                    .bucket(s3Properties.bucket().profileImages())
+                    .key("test.png")
+                    .build();
+            var response = s3Client.getObject(request);
+            var actualImages = response.readAllBytes();
+            assertThat(actualImages).isEqualTo(imageBytes);
+        }
+    }
+
+    private S3Client createS3Client() {
+        return S3Client.builder()
+                .serviceConfiguration(
+                        S3Configuration.builder()
+                                .pathStyleAccessEnabled(true)
+                                .build()
+                )
+                .endpointOverride(
+                        URI.create(
+                                s3Properties.endpoint()
+                        )
+                )
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(
+                                        s3Properties.accessKey(),
+                                        s3Properties.secretKey()
+                                )
+                        )
+                )
+                .region(
+                        Region.of(
+                                s3Properties.region()
+                        )
+                )
+                .build();
     }
 
     private String getCsrfCookie() {
