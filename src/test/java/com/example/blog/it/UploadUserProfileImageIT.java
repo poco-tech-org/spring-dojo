@@ -40,15 +40,48 @@ public class UploadUserProfileImageIT {
     private UserService userService;
     @Autowired
     private S3Properties s3Properties;
+    private S3Client s3Client;
 
     @BeforeEach
     public void beforeEach() {
         userService.delete(TEST_USERNAME);
+        s3Client = createS3Client();
     }
 
     @AfterEach
     public void afterEach() {
         userService.delete(TEST_USERNAME);
+        if (s3Client != null) {
+            s3Client.close();
+        }
+    }
+
+    private S3Client createS3Client() {
+        return S3Client.builder()
+                .serviceConfiguration(
+                        S3Configuration.builder()
+                                .pathStyleAccessEnabled(true)
+                                .build()
+                )
+                .endpointOverride(
+                        URI.create(
+                                s3Properties.endpoint()
+                        )
+                )
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(
+                                        s3Properties.accessKey(),
+                                        s3Properties.secretKey()
+                                )
+                        )
+                )
+                .region(
+                        Region.of(
+                                s3Properties.region()
+                        )
+                )
+                .build();
     }
 
     @Test
@@ -86,43 +119,13 @@ public class UploadUserProfileImageIT {
         responseSpec.expectStatus().isOk();
 
         // S3 にアップロードされているか確認する
-        try(var s3Client = createS3Client()) {
-            var request = GetObjectRequest.builder()
-                    .bucket(s3Properties.bucket().profileImages())
-                    .key("test.png")
-                    .build();
-            var response = s3Client.getObject(request);
-            var actualImages = response.readAllBytes();
-            assertThat(actualImages).isEqualTo(imageBytes);
-        }
-    }
-
-    private S3Client createS3Client() {
-        return S3Client.builder()
-                .serviceConfiguration(
-                        S3Configuration.builder()
-                                .pathStyleAccessEnabled(true)
-                                .build()
-                )
-                .endpointOverride(
-                        URI.create(
-                                s3Properties.endpoint()
-                        )
-                )
-                .credentialsProvider(
-                        StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create(
-                                        s3Properties.accessKey(),
-                                        s3Properties.secretKey()
-                                )
-                        )
-                )
-                .region(
-                        Region.of(
-                                s3Properties.region()
-                        )
-                )
+        var request = GetObjectRequest.builder()
+                .bucket(s3Properties.bucket().profileImages())
+                .key("test.png")
                 .build();
+        var response = s3Client.getObject(request);
+        var actualImages = response.readAllBytes();
+        assertThat(actualImages).isEqualTo(imageBytes);
     }
 
     private String getCsrfCookie() {
