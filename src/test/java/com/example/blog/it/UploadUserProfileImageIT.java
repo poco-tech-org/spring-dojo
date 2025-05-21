@@ -5,6 +5,7 @@ import com.example.blog.model.UserProfileImageUploadURLDTO;
 import com.example.blog.service.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,14 +47,21 @@ public class UploadUserProfileImageIT {
     public void beforeEach() {
         userService.delete(TEST_USERNAME);
         s3Client = createS3Client();
+        deleteImage(TEST_IMAGE_PATH); // 開発中にテストが失敗した場合などに test.png が localstack に残っているケースなどで削除する
     }
 
     @AfterEach
     public void afterEach() {
         userService.delete(TEST_USERNAME);
-        if (s3Client != null) {
-            s3Client.close();
-        }
+        deleteImage(TEST_IMAGE_PATH);
+    }
+
+    private void deleteImage(String fileName) {
+        s3Client.deleteObject(builder -> builder
+                .bucket(s3Properties.bucket().profileImages())
+                .key(fileName)
+                .build()
+        );
     }
 
     private S3Client createS3Client() {
@@ -100,6 +108,51 @@ public class UploadUserProfileImageIT {
         uploadImage(uploadUrlDTO.getImageUploadUrl());
 
         // ファイルパスの登録
+    }
+
+    @Test
+    @DisplayName("Presigned URL に含まれる ContentType と異なる ContentType のファイルはアップロードできない")
+    public void contentTypeMismatch() throws IOException {
+        //ユーザー作成
+        var xsrfToken = getCsrfCookie();
+        register(xsrfToken);
+
+        // ログイン成功
+        var sessionId = loginSuccess(xsrfToken);
+
+        // Pre-signed URL の取得
+        var uploadUrlDTO = getUserProfileImageUploadURL(sessionId);
+
+        // S3へのファイルアップロード
+        uploadImage(uploadUrlDTO.getImageUploadUrl(), MediaType.IMAGE_JPEG);
+
+        // ファイルパスの登録
+    }
+
+    private void uploadImage(URI uploadUrl, MediaType mediaType) throws IOException {
+        // ## Arrange ##
+        var imageResource = new ClassPathResource(TEST_IMAGE_PATH);
+        var imageFile = imageResource.getFile();
+        var imageBytes = Files.readAllBytes(imageFile.toPath());
+
+        // ## Act ##
+        var responseSpec = webTestClient
+                .put().uri(uploadUrl)
+                .contentType(mediaType)
+                .bodyValue(imageBytes)
+                .exchange();
+
+        // ## Assert ##
+        responseSpec.expectStatus().isOk();
+
+        // S3 にアップロードされているか確認する
+        var request = GetObjectRequest.builder()
+                .bucket(s3Properties.bucket().profileImages())
+                .key("test.png")
+                .build();
+        var response = s3Client.getObject(request);
+        var actualImages = response.readAllBytes();
+        assertThat(actualImages).isEqualTo(imageBytes);
     }
 
     private void uploadImage(URI uploadUrl) throws IOException {
@@ -209,7 +262,7 @@ public class UploadUserProfileImageIT {
                 .get().uri(uriBuilder -> uriBuilder
                         .path("/users/me/image-upload-url")
                         .queryParam("fileName", imageFile.getName())
-                        .queryParam("contentType", "image.png")
+                        .queryParam("contentType", MediaType.IMAGE_PNG)
                         .queryParam("contentLength", 104892)
                         .build()
                 )

@@ -25,6 +25,7 @@ public class StorageService {
         return createPresignedUrl(
                 s3Properties.bucket().profileImages(),
                 fileName,
+                contentType,
                 Map.of()
         );
     }
@@ -33,11 +34,13 @@ public class StorageService {
     private String createPresignedUrl(
             String bucketName,
             String keyName,
+            String contentType,
             Map<String, String> metadata
     ) {
         var objectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(keyName)
+                .contentType(contentType)
                 .metadata(metadata)
                 .build();
 
