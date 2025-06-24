@@ -18,3 +18,11 @@ server:
   servlet:
     session:
       timeout: 3600s # 実験用にとても短い30秒に設定
+aws:
+  s3:
+    endpoint: ${AWS_S3_ENDPOINT:http://localhost:4566}
+    region: ${AWS_S3_REGION:ap-northeast-1}
+    access-key: ${AWS_S3_ACCESS_KEY:test1}
+    secret-key: ${AWS_S3_SECRET_KEY:test2}
+    bucket:
+      profile-images: ${AWS_S3_BUCKET_PROFILE_IMAGES:profile-images}
