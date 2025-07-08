@@ -1,7 +1,6 @@
 package com.example.blog.service;
 
 import com.example.blog.config.S3Properties;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -19,10 +18,34 @@ import java.util.Map;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class StorageService {
 
     private final S3Properties s3Properties;
+    private final S3Presigner s3Presigner;
+
+    public StorageService(S3Properties s3Properties) {
+        this.s3Properties = s3Properties;
+        this.s3Presigner = S3Presigner.builder()
+                .serviceConfiguration(
+                        S3Configuration.builder()
+                                .pathStyleAccessEnabled(true)
+                                .build())
+                .endpointOverride(
+                        URI.create(s3Properties.endpoint())
+                )
+                .credentialsProvider(
+                        StaticCredentialsProvider.create(
+                                AwsBasicCredentials.create(
+                                        s3Properties.accessKey(),
+                                        s3Properties.secretKey()
+                                )
+                        )
+                )
+                .region(
+                        Region.of(s3Properties.region())
+                )
+                .build();
+    }
 
     public String createUploadURL(
             String fileName,
@@ -43,46 +66,23 @@ public class StorageService {
             String keyName,
             Map<String, String> metadata
     ) {
-        var builder = S3Presigner.builder()
-                .serviceConfiguration(
-                        S3Configuration.builder()
-                                .pathStyleAccessEnabled(true)
-                                .build())
-                .endpointOverride(
-                        URI.create(s3Properties.endpoint())
-                )
-                .credentialsProvider(
-                        StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create(
-                                        s3Properties.accessKey(),
-                                        s3Properties.secretKey()
-                                )
-                        )
-                )
-                .region(
-                        Region.of(s3Properties.region())
-                );
+        PutObjectRequest objectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(keyName)
+                .metadata(metadata)
+                .build();
 
-        try (S3Presigner presigner = builder.build()) {
-
-            PutObjectRequest objectRequest = PutObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(keyName)
-                    .metadata(metadata)
-                    .build();
-
-            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
-                    .signatureDuration(Duration.ofMinutes(10))  // The URL expires in 10 minutes.
-                    .putObjectRequest(objectRequest)
-                    .build();
+        PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(10))  // The URL expires in 10 minutes.
+                .putObjectRequest(objectRequest)
+                .build();
 
 
-            PresignedPutObjectRequest presignedRequest = presigner.presignPutObject(presignRequest);
-            String myURL = presignedRequest.url().toString();
-            log.info("Presigned URL to upload a file to: [{}]", myURL);
-            log.info("HTTP method: [{}]", presignedRequest.httpRequest().method());
+        PresignedPutObjectRequest presignedRequest = s3Presigner.presignPutObject(presignRequest);
+        String myURL = presignedRequest.url().toString();
+        log.info("Presigned URL to upload a file to: [{}]", myURL);
+        log.info("HTTP method: [{}]", presignedRequest.httpRequest().method());
 
-            return presignedRequest.url().toExternalForm();
-        }
+        return presignedRequest.url().toExternalForm();
     }
 }
