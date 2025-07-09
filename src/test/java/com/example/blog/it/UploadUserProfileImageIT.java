@@ -7,10 +7,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,6 +25,7 @@ public class UploadUserProfileImageIT {
     private static final String TEST_PASSWORD = "password10";
     private static final String DUMMY_SESSION_ID = "session_id_1";
     private static final String SESSION_COOKIE_NAME = "SESSION";
+    private static final String TEST_IMAGE_FILE_NAME = "test.png";
 
     @Autowired
     private WebTestClient webTestClient;
@@ -39,7 +43,7 @@ public class UploadUserProfileImageIT {
     }
 
     @Test
-    public void integrationTest() {
+    public void integrationTest() throws IOException {
         //ユーザー作成
         var xsrfToken = getCsrfCookie();
         register(xsrfToken);
@@ -135,7 +139,7 @@ public class UploadUserProfileImageIT {
                 .get().uri(uriBuilder -> uriBuilder
                         .path("/users/me/image-upload-url")
                         .queryParam("fileName", "my-profile.png")
-                        .queryParam("contentType", "image.png")
+                        .queryParam("contentType", TEST_IMAGE_FILE_NAME)
                         .queryParam("contentLength", 104892)
                         .build()
                 )
@@ -163,9 +167,11 @@ public class UploadUserProfileImageIT {
         return actualResponseBody;
     }
 
-    private void uploadImage(URI imageUploadUrl) {
+    private void uploadImage(URI imageUploadUrl) throws IOException {
         // ## Arrange ##
-        var imageBytes = "あとで画像に置き換える".getBytes();
+        var imageResource = new ClassPathResource(TEST_IMAGE_FILE_NAME);
+        var imageFile = imageResource.getFile();
+        var imageBytes = Files.readAllBytes(imageFile.toPath());
 
         // ## Act ##
         var responseSpec = webTestClient
