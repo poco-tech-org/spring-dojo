@@ -54,7 +54,7 @@ public class StorageService {
     ) {
         return createPresignedUrl(
                 s3Properties.bucket().profileImages(),
-                "test-key",
+                fileName,
                 Map.of()
         );
     }
