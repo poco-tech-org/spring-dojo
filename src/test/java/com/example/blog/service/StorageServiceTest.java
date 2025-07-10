@@ -1,5 +1,6 @@
 package com.example.blog.service;
 
+import com.example.blog.config.S3PresignerConfig;
 import com.example.blog.config.S3Properties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,7 +12,10 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringJUnitConfig(
-        classes = StorageService.class,
+        classes = {
+                StorageService.class,
+                S3PresignerConfig.class
+        },
         initializers = ConfigDataApplicationContextInitializer.class
 )
 @EnableConfigurationProperties(S3Properties.class)
