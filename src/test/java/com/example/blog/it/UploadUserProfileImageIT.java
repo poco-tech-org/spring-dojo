@@ -1,6 +1,7 @@
 package com.example.blog.it;
 
 import com.example.blog.config.S3Properties;
+import com.example.blog.config.TestS3ClientConfig;
 import com.example.blog.model.UserProfileImageUploadURLDTO;
 import com.example.blog.service.user.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -8,14 +9,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
 import java.io.IOException;
@@ -26,6 +24,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@Import(TestS3ClientConfig.class)
 public class UploadUserProfileImageIT {
 
     private static final String TEST_USERNAME = "test_username1";
@@ -40,6 +39,8 @@ public class UploadUserProfileImageIT {
     private UserService userService;
     @Autowired
     private S3Properties s3Properties;
+    @Autowired
+    private S3Client testS3Client;
 
     @BeforeEach
     public void beforeEach() {
@@ -193,37 +194,12 @@ public class UploadUserProfileImageIT {
         responseSpec.expectStatus().isOk();
 
         // S3 にファイルがアップロードされているか
-        try (var s3Client = createS3Client()) {
-            var request = GetObjectRequest.builder()
-                    .bucket(s3Properties.bucket().profileImages())
-                    .key(TEST_IMAGE_FILE_NAME)
-                    .build();
-            var response = s3Client.getObject(request);
-            var actualImages = response.readAllBytes();
-            assertThat(actualImages).isEqualTo(imageBytes);
-        }
-    }
-
-    private S3Client createS3Client() {
-        return S3Client.builder()
-                .serviceConfiguration(
-                        S3Configuration.builder()
-                                .pathStyleAccessEnabled(true)
-                                .build())
-                .endpointOverride(
-                        URI.create(s3Properties.endpoint())
-                )
-                .credentialsProvider(
-                        StaticCredentialsProvider.create(
-                                AwsBasicCredentials.create(
-                                        s3Properties.accessKey(),
-                                        s3Properties.secretKey()
-                                )
-                        )
-                )
-                .region(
-                        Region.of(s3Properties.region())
-                )
+        var request = GetObjectRequest.builder()
+                .bucket(s3Properties.bucket().profileImages())
+                .key(TEST_IMAGE_FILE_NAME)
                 .build();
+        var response = testS3Client.getObject(request);
+        var actualImages = response.readAllBytes();
+        assertThat(actualImages).isEqualTo(imageBytes);
     }
 }
