@@ -45,11 +45,21 @@ public class UploadUserProfileImageIT {
     @BeforeEach
     public void beforeEach() {
         userService.delete(TEST_USERNAME);
+        deleteImage(TEST_IMAGE_FILE_NAME);
     }
 
     @AfterEach
     public void afterEach() {
         userService.delete(TEST_USERNAME);
+        deleteImage(TEST_IMAGE_FILE_NAME);
+    }
+
+    private void deleteImage(String fileName) {
+        testS3Client.deleteObject(builder -> builder
+                .bucket(s3Properties.bucket().profileImages())
+                .key(fileName)
+                .build()
+        );
     }
 
     @Test
