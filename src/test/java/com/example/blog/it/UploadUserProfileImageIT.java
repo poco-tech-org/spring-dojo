@@ -101,7 +101,6 @@ public class UploadUserProfileImageIT {
 
         // S3へのファイルアップロード
         uploadImageContentTypeMismatch(uploadUrlDTO.getImageUploadUrl(), MediaType.APPLICATION_XML);
-
     }
 
     private String getCsrfCookie() {
