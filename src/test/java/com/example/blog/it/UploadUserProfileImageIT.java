@@ -6,6 +6,7 @@ import com.example.blog.model.UserProfileImageUploadURLDTO;
 import com.example.blog.service.user.UserService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +16,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -22,6 +25,7 @@ import java.nio.file.Files;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Import(TestS3ClientConfig.class)
@@ -72,12 +76,32 @@ public class UploadUserProfileImageIT {
         var sessionId = loginSuccess(xsrfToken);
 
         // Pre-signed URL の取得
-        var uploadUrlDTO = getUserProfileImageUploadURL(sessionId);
+        var uploadUrlDTO = getUserProfileImageUploadURL(sessionId, MediaType.IMAGE_PNG);
 
         // S3へのファイルアップロード
-        uploadImage(uploadUrlDTO.getImageUploadUrl());
+        uploadImage(uploadUrlDTO.getImageUploadUrl(), MediaType.IMAGE_PNG);
 
         // ファイルパスの登録
+    }
+
+    @Test
+    @DisplayName(
+            "Presigned URL 取得時に指定した ContentType と異なる ContentType が指定されたとき、ファイルを S3 にアップロードできない"
+    )
+    public void contentTypeMismatch() throws IOException {
+        //ユーザー作成
+        var xsrfToken = getCsrfCookie();
+        register(xsrfToken);
+
+        // ログイン成功
+        var sessionId = loginSuccess(xsrfToken);
+
+        // Pre-signed URL の取得
+        var uploadUrlDTO = getUserProfileImageUploadURL(sessionId, MediaType.IMAGE_PNG);
+
+        // S3へのファイルアップロード
+        uploadImageContentTypeMismatch(uploadUrlDTO.getImageUploadUrl(), MediaType.APPLICATION_XML);
+
     }
 
     private String getCsrfCookie() {
@@ -152,14 +176,15 @@ public class UploadUserProfileImageIT {
     }
 
     private UserProfileImageUploadURLDTO getUserProfileImageUploadURL(
-            String loginSessionCookie
+            String loginSessionCookie,
+            MediaType contentType
     ) {
         // ## Act ##
         var responseSpec = webTestClient
                 .get().uri(uriBuilder -> uriBuilder
                         .path("/users/me/image-upload-url")
                         .queryParam("fileName", TEST_IMAGE_FILE_NAME)
-                        .queryParam("contentType", MediaType.IMAGE_PNG)
+                        .queryParam("contentType", contentType)
                         .queryParam("contentLength", 104892)
                         .build()
                 )
@@ -187,7 +212,10 @@ public class UploadUserProfileImageIT {
         return actualResponseBody;
     }
 
-    private void uploadImage(URI imageUploadUrl) throws IOException {
+    private void uploadImage(
+            URI imageUploadUrl,
+            MediaType contentType
+    ) throws IOException {
         // ## Arrange ##
         var imageResource = new ClassPathResource(TEST_IMAGE_FILE_NAME);
         var imageFile = imageResource.getFile();
@@ -196,7 +224,7 @@ public class UploadUserProfileImageIT {
         // ## Act ##
         var responseSpec = webTestClient
                 .put().uri(imageUploadUrl)
-                .contentType(MediaType.IMAGE_PNG)
+                .contentType(contentType)
                 .bodyValue(imageBytes)
                 .exchange();
 
@@ -211,5 +239,34 @@ public class UploadUserProfileImageIT {
         var response = testS3Client.getObject(request);
         var actualImages = response.readAllBytes();
         assertThat(actualImages).isEqualTo(imageBytes);
+    }
+
+
+    private void uploadImageContentTypeMismatch(
+            URI imageUploadUrl,
+            MediaType contentType
+    ) throws IOException {
+        // ## Arrange ##
+        var imageResource = new ClassPathResource(TEST_IMAGE_FILE_NAME);
+        var imageFile = imageResource.getFile();
+        var imageBytes = Files.readAllBytes(imageFile.toPath());
+
+        // ## Act ##
+        var responseSpec = webTestClient
+                .put().uri(imageUploadUrl)
+                .contentType(contentType)
+                .bodyValue(imageBytes)
+                .exchange();
+
+        // ## Assert ##
+        responseSpec.expectStatus().isForbidden();
+
+        // S3 にファイルがアップロードされていないことを確認する
+        var request = HeadObjectRequest.builder()
+                .bucket(s3Properties.bucket().profileImages())
+                .key(TEST_IMAGE_FILE_NAME)
+                .build();
+        assertThatThrownBy(() -> testS3Client.headObject(request))
+                .isInstanceOf(NoSuchKeyException.class);
     }
 }
