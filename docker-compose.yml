@@ -40,6 +40,7 @@ services:
       - AWS_ACCESS_KEY_ID=test1
       - AWS_SECRET_ACCESS_KEY=test2
       - DEBUG=1
+      - S3_SKIP_SIGNATURE_VALIDATION=0
     volumes:
       - localstack_data:/var/lib/localstack
       - ./docker/localstack/init:/etc/localstack/init
