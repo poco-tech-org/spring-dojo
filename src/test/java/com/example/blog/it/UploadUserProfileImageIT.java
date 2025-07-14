@@ -36,6 +36,7 @@ public class UploadUserProfileImageIT {
     private static final String DUMMY_SESSION_ID = "session_id_1";
     private static final String SESSION_COOKIE_NAME = "SESSION";
     private static final String TEST_IMAGE_FILE_NAME = "test.png";
+    private static final String TEST_IMAGE_FILE_NAME_OTHER_SIZE = "test_otherSize.png";
 
     @Autowired
     private WebTestClient webTestClient;
@@ -76,7 +77,7 @@ public class UploadUserProfileImageIT {
         var sessionId = loginSuccess(xsrfToken);
 
         // Pre-signed URL の取得
-        var uploadUrlDTO = getUserProfileImageUploadURL(sessionId, MediaType.IMAGE_PNG);
+        var uploadUrlDTO = getUserProfileImageUploadURL(sessionId, MediaType.IMAGE_PNG, TEST_IMAGE_FILE_NAME);
 
         // S3へのファイルアップロード
         uploadImage(uploadUrlDTO.getImageUploadUrl(), MediaType.IMAGE_PNG);
@@ -97,10 +98,37 @@ public class UploadUserProfileImageIT {
         var sessionId = loginSuccess(xsrfToken);
 
         // Pre-signed URL の取得
-        var uploadUrlDTO = getUserProfileImageUploadURL(sessionId, MediaType.IMAGE_PNG);
+        var uploadUrlDTO = getUserProfileImageUploadURL(sessionId, MediaType.IMAGE_PNG, TEST_IMAGE_FILE_NAME);
 
         // S3へのファイルアップロード
         uploadImageContentTypeMismatch(uploadUrlDTO.getImageUploadUrl(), MediaType.APPLICATION_XML);
+    }
+
+    @Test
+    @DisplayName(
+            "Presigned URL 取得時に指定した ContentLength と異なるファイルは S3 にアップロードできない"
+    )
+    public void contentLengthMismatch() throws IOException {
+        //ユーザー作成
+        var xsrfToken = getCsrfCookie();
+        register(xsrfToken);
+
+        // ログイン成功
+        var sessionId = loginSuccess(xsrfToken);
+
+        // Pre-signed URL の取得
+        var uploadUrlDTO = getUserProfileImageUploadURL(
+                sessionId,
+                MediaType.IMAGE_PNG,
+                TEST_IMAGE_FILE_NAME
+        );
+
+        // S3へのファイルアップロード
+        uploadImageContentLengthMismatch(
+                uploadUrlDTO.getImageUploadUrl(),
+                MediaType.IMAGE_PNG,
+                TEST_IMAGE_FILE_NAME_OTHER_SIZE
+        );
     }
 
     private String getCsrfCookie() {
@@ -176,15 +204,21 @@ public class UploadUserProfileImageIT {
 
     private UserProfileImageUploadURLDTO getUserProfileImageUploadURL(
             String loginSessionCookie,
-            MediaType contentType
-    ) {
+            MediaType contentType,
+            String imageFileName
+    ) throws IOException {
+        // ## Arrange ##
+        var imageResource = new ClassPathResource(TEST_IMAGE_FILE_NAME);
+        var imageFile = imageResource.getFile();
+        var imageSize = imageFile.length();
+
         // ## Act ##
         var responseSpec = webTestClient
                 .get().uri(uriBuilder -> uriBuilder
                         .path("/users/me/image-upload-url")
-                        .queryParam("fileName", TEST_IMAGE_FILE_NAME)
+                        .queryParam("fileName", imageFileName)
                         .queryParam("contentType", contentType)
-                        .queryParam("contentLength", 104892)
+                        .queryParam("contentLength", imageSize)
                         .build()
                 )
                 .cookie(SESSION_COOKIE_NAME, loginSessionCookie)
@@ -240,13 +274,41 @@ public class UploadUserProfileImageIT {
         assertThat(actualImages).isEqualTo(imageBytes);
     }
 
-
     private void uploadImageContentTypeMismatch(
             URI imageUploadUrl,
             MediaType contentType
     ) throws IOException {
         // ## Arrange ##
         var imageResource = new ClassPathResource(TEST_IMAGE_FILE_NAME);
+        var imageFile = imageResource.getFile();
+        var imageBytes = Files.readAllBytes(imageFile.toPath());
+
+        // ## Act ##
+        var responseSpec = webTestClient
+                .put().uri(imageUploadUrl)
+                .contentType(contentType)
+                .bodyValue(imageBytes)
+                .exchange();
+
+        // ## Assert ##
+        responseSpec.expectStatus().isForbidden();
+
+        // S3 にファイルがアップロードされていないことを確認する
+        var request = HeadObjectRequest.builder()
+                .bucket(s3Properties.bucket().profileImages())
+                .key(TEST_IMAGE_FILE_NAME)
+                .build();
+        assertThatThrownBy(() -> testS3Client.headObject(request))
+                .isInstanceOf(NoSuchKeyException.class);
+    }
+
+    private void uploadImageContentLengthMismatch(
+            URI imageUploadUrl,
+            MediaType contentType,
+            String imageFileName
+    ) throws IOException {
+        // ## Arrange ##
+        var imageResource = new ClassPathResource(imageFileName);
         var imageFile = imageResource.getFile();
         var imageBytes = Files.readAllBytes(imageFile.toPath());
 
