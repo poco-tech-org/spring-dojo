@@ -23,12 +23,13 @@ public class StorageService {
     public String createUploadURL(
             String fileName,
             String contentType,
-            Long contentLength
+            long contentLength
     ) {
         return createPresignedUrl(
                 s3Properties.bucket().profileImages(),
                 fileName,
                 contentType,
+                contentLength,
                 Map.of()
         );
     }
@@ -39,12 +40,14 @@ public class StorageService {
             String bucketName,
             String keyName,
             String contentType,
+            long contentLength,
             Map<String, String> metadata
     ) {
         PutObjectRequest objectRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(keyName)
                 .contentType(contentType)
+                .contentLength(contentLength)
                 .metadata(metadata)
                 .build();
 
