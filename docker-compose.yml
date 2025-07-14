@@ -37,8 +37,11 @@ services:
     environment:
       - SERVICES=s3
       - AWS_DEFAULT_REGION=ap-northeast-1
-      - AWS_ACCESS_KEY_ID=test1
-      - AWS_SECRET_ACCESS_KEY=test2
+      - AWS_ACCESS_KEY_ID=test_aws_access_key_id
+      # AWS_SECRET_ACCESS_KEY は test から変更してはいけない。
+      # ref. https://docs.localstack.cloud/aws/capabilities/config/configuration/#s3
+      # > Note that validation can only pass if the AWS_SECRET_ACCESS_KEY is set to test or ...
+      - AWS_SECRET_ACCESS_KEY=test
       - DEBUG=1
       - S3_SKIP_SIGNATURE_VALIDATION=0
     volumes:
