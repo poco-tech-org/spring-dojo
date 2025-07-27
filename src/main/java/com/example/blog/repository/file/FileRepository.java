@@ -1,4 +1,4 @@
-package com.example.blog.service;
+package com.example.blog.repository.file;
 
 import com.example.blog.config.S3Properties;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import java.util.Map;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class StorageService {
+public class FileRepository {
 
     private final S3Properties s3Properties;
     private final S3Presigner s3Presigner;
