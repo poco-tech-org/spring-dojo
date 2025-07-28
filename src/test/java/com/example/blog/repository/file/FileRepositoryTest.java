@@ -41,10 +41,10 @@ class FileRepositoryTest {
 
         // ## Assert ##
         assertThat(actual)
-                .contains(s3Properties.bucket().profileImages() + "/test.png")
-                .contains("X-Amz-Expires=600")
-                .contains("X-Amz-SignedHeaders=content-length%3Bcontent-type%3Bhost")
-                .contains("X-Amz-Signature")
+                .hasPath("/" + s3Properties.bucket().profileImages() + "/test.png")
+                .hasParameter("X-Amz-Expires", "600")
+                .hasParameter("X-Amz-SignedHeaders", "content-length;content-type;host")
+                .hasParameter("X-Amz-Signature")
         ;
     }
 }

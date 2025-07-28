@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.security.Principal;
 
 @RestController
@@ -57,7 +56,7 @@ public class UserRestController implements UsersApi {
         var uploadURL = userService.createProfileImageUploadURL(fileName, contentType, contentLength);
         var dto = new UserProfileImageUploadURLDTO()
                 .imagePath(uploadURL.imagePath())
-                .imageUploadUrl(URI.create(uploadURL.uploadURL()));
+                .imageUploadUrl(uploadURL.uploadURL());
         return ResponseEntity.ok(dto);
     }
 }
