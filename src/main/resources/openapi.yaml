@@ -162,6 +162,38 @@ paths:
           $ref: "#/components/responses/UnauthorizedResponse"
         '500':
           $ref: "#/components/responses/InternalServerErrorResponse"
+  /users/me/image:
+    put:
+      description: |
+        ユーザーのプロフィール画像のパスを登録します。
+        指定された `imagePath` が S3 バケットに存在しないときは 400 エラーをレスポンスします。
+      tags: [ users ]
+      operationId: updateUserProfileImage
+      security:
+        - cookieAuth: []
+        - csrfProtectionHeader: [ ]
+        - csrfProtectionCookie: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserProfileImageForm"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '400':
+          $ref: "#/components/responses/BadRequestResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '500':
+          $ref: "#/components/responses/InternalServerErrorResponse"
   /articles:
     post:
       tags: [ articles ]
@@ -490,6 +522,17 @@ components:
           format: uri
           example: http://localhost:4566/profile-images/user1_20241210T224934Z.png?xxx=yyy
         imagePath:
+          type: string
+          example: user1_20241210T224934Z.png
+    UserProfileImageForm:
+      type: object
+      required:
+        - imagePath
+      properties:
+        imagePath:
+          description: |
+            アップロードされた画像のファイルパス。
+            事前に `/users/me/image-upload-url` で取得したレスポンスに含まれる `imagePath` を設定してください。
           type: string
           example: user1_20241210T224934Z.png
     ArticleForm:
