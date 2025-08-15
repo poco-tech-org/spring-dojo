@@ -23,7 +23,7 @@ public class UserRestController implements UsersApi {
     private final UserService userService;
     private final DuplicateUsernameValidator duplicateUsernameValidator;
 
-    @InitBinder
+    @InitBinder("userForm")
     public void initBinder(DataBinder dataBinder) {
         dataBinder.addValidators(duplicateUsernameValidator);
     }
