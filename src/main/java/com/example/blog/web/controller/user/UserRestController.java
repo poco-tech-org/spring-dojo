@@ -3,6 +3,7 @@ package com.example.blog.web.controller.user;
 import com.example.blog.api.UsersApi;
 import com.example.blog.model.UserDTO;
 import com.example.blog.model.UserForm;
+import com.example.blog.model.UserProfileImageForm;
 import com.example.blog.model.UserProfileImageUploadURLDTO;
 import com.example.blog.service.user.UserService;
 import lombok.RequiredArgsConstructor;
@@ -58,5 +59,16 @@ public class UserRestController implements UsersApi {
                 .imagePath(uploadURL.imagePath())
                 .imageUploadUrl(uploadURL.uploadURL());
         return ResponseEntity.ok(dto);
+    }
+
+    @Override
+    public ResponseEntity<UserDTO> updateUserProfileImage(
+            UserProfileImageForm userProfileImageForm
+    ) {
+        return ResponseEntity.ok(
+                new UserDTO()
+                        .id(1L)
+                        .username("test_username")
+        );
     }
 }
