@@ -65,10 +65,14 @@ public class UserRestController implements UsersApi {
     public ResponseEntity<UserDTO> updateUserProfileImage(
             UserProfileImageForm userProfileImageForm
     ) {
-        return ResponseEntity.ok(
-                new UserDTO()
-                        .id(1L)
-                        .username("test_username")
+        var updatedUser = userService.updateProfileImage(
+                "dummyUsername", // TODO
+                userProfileImageForm.getImagePath()
         );
+        var userDTO = new UserDTO()
+                .id(updatedUser.getId())
+                .username(updatedUser.getUsername());
+        // TODO set profile image
+        return ResponseEntity.ok(userDTO);
     }
 }

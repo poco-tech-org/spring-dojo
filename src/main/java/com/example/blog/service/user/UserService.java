@@ -2,6 +2,7 @@ package com.example.blog.service.user;
 
 import com.example.blog.repository.file.FileRepository;
 import com.example.blog.repository.user.UserRepository;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -40,5 +41,9 @@ public class UserService {
     ) {
         var uploadURL = fileRepository.createUploadURL(fileName, contentType, contentLength);
         return new ProfileImageUpload(uploadURL, "dummy");
+    }
+
+    public UserEntity updateProfileImage(String username, @NotNull String imagePath) {
+        return new UserEntity(1L, username, "hoge", false);
     }
 }
