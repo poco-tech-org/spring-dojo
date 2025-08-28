@@ -5,9 +5,11 @@ import com.example.blog.model.UserDTO;
 import com.example.blog.model.UserForm;
 import com.example.blog.model.UserProfileImageForm;
 import com.example.blog.model.UserProfileImageUploadURLDTO;
+import com.example.blog.security.LoggedInUser;
 import com.example.blog.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.DataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
@@ -65,8 +67,12 @@ public class UserRestController implements UsersApi {
     public ResponseEntity<UserDTO> updateUserProfileImage(
             UserProfileImageForm userProfileImageForm
     ) {
+        var loggedInUser = (LoggedInUser) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
         var updatedUser = userService.updateProfileImage(
-                "dummyUsername", // TODO
+                loggedInUser.getUsername(),
                 userProfileImageForm.getImagePath()
         );
         var userDTO = new UserDTO()
