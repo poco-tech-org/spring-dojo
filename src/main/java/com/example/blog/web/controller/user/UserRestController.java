@@ -11,12 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.DataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.security.Principal;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,10 +27,13 @@ public class UserRestController implements UsersApi {
         dataBinder.addValidators(duplicateUsernameValidator);
     }
 
-    // GET /users/me
-    @GetMapping("/users/me")
-    public ResponseEntity<String> me(Principal principal) {
-        return ResponseEntity.ok(principal.getName());
+    @Override
+    public ResponseEntity<UserDTO> getCurrentUser() {
+        var userDTO = new UserDTO()
+                .id(1L) // 仮実装: 固定値
+                .username("test_username1")
+                .imagePath("dummy"); // 仮実装: ダミー値 ref. UserService#createProfileImageUploadURL
+        return ResponseEntity.ok(userDTO);
     }
 
     @Override
