@@ -2,6 +2,7 @@ package com.example.blog.it;
 
 import com.example.blog.config.S3Properties;
 import com.example.blog.config.TestS3ClientConfig;
+import com.example.blog.model.UserDTO;
 import com.example.blog.model.UserProfileImageUploadURLDTO;
 import com.example.blog.service.user.UserService;
 import org.junit.jupiter.api.AfterEach;
@@ -71,13 +72,18 @@ public class UploadUserProfileImageIT {
     public void integrationTest() throws IOException {
         //ユーザー作成
         var xsrfToken = getCsrfCookie();
-        register(xsrfToken);
+        var registeredUser = register(xsrfToken);
 
         // ログイン成功
         var sessionId = loginSuccess(xsrfToken);
 
         // Pre-signed URL の取得
-        var uploadUrlDTO = getUserProfileImageUploadURL(sessionId, MediaType.IMAGE_PNG, TEST_IMAGE_FILE_NAME);
+        var uploadUrlDTO = getUserProfileImageUploadURL(
+                sessionId,
+                MediaType.IMAGE_PNG,
+                TEST_IMAGE_FILE_NAME,
+                registeredUser.getId()
+        );
 
         // S3へのファイルアップロード
         uploadImage(uploadUrlDTO.getImageUploadUrl(), MediaType.IMAGE_PNG);
@@ -93,13 +99,18 @@ public class UploadUserProfileImageIT {
     public void contentTypeMismatch() throws IOException {
         //ユーザー作成
         var xsrfToken = getCsrfCookie();
-        register(xsrfToken);
+        var registeredUser = register(xsrfToken);
 
         // ログイン成功
         var sessionId = loginSuccess(xsrfToken);
 
         // Pre-signed URL の取得
-        var uploadUrlDTO = getUserProfileImageUploadURL(sessionId, MediaType.IMAGE_PNG, TEST_IMAGE_FILE_NAME);
+        var uploadUrlDTO = getUserProfileImageUploadURL(
+                sessionId,
+                MediaType.IMAGE_PNG,
+                TEST_IMAGE_FILE_NAME,
+                registeredUser.getId()
+        );
 
         // S3へのファイルアップロード
         uploadImageContentTypeMismatch(uploadUrlDTO.getImageUploadUrl(), MediaType.APPLICATION_XML);
@@ -112,7 +123,7 @@ public class UploadUserProfileImageIT {
     public void contentLengthMismatch() throws IOException {
         //ユーザー作成
         var xsrfToken = getCsrfCookie();
-        register(xsrfToken);
+        var registeredUser = register(xsrfToken);
 
         // ログイン成功
         var sessionId = loginSuccess(xsrfToken);
@@ -121,7 +132,8 @@ public class UploadUserProfileImageIT {
         var uploadUrlDTO = getUserProfileImageUploadURL(
                 sessionId,
                 MediaType.IMAGE_PNG,
-                TEST_IMAGE_FILE_NAME
+                TEST_IMAGE_FILE_NAME,
+                registeredUser.getId()
         );
 
         // S3へのファイルアップロード
@@ -152,7 +164,7 @@ public class UploadUserProfileImageIT {
         return xsrfTokenOpt.get().getValue();
     }
 
-    private void register(String xsrfToken) {
+    private UserDTO register(String xsrfToken) {
         // ## Arrange ##
         var bodyJson = String.format("""
                 {
@@ -171,7 +183,15 @@ public class UploadUserProfileImageIT {
                 .exchange();
 
         // ## Assert ##
-        responseSpec.expectStatus().isCreated();
+        var actualUserDTO = responseSpec
+                .expectStatus().isCreated()
+                .expectBody(UserDTO.class)
+                .returnResult()
+                .getResponseBody();
+
+        assertThat(actualUserDTO).isNotNull();
+
+        return actualUserDTO;
     }
 
     private String loginSuccess(String xsrfToken) {
@@ -206,7 +226,8 @@ public class UploadUserProfileImageIT {
     private UserProfileImageUploadURLDTO getUserProfileImageUploadURL(
             String loginSessionCookie,
             MediaType contentType,
-            String imageFileName
+            String imageFileName,
+            Long userId
     ) throws IOException {
         // ## Arrange ##
         var imageResource = new ClassPathResource(TEST_IMAGE_FILE_NAME);
@@ -233,7 +254,8 @@ public class UploadUserProfileImageIT {
                 .getResponseBody();
 
         assertThat(actualResponseBody).isNotNull();
-        assertThat(actualResponseBody.getImagePath()).isNotBlank();
+        assertThat(actualResponseBody.getImagePath())
+                .isEqualTo("users/%d/profile-image.png".formatted(userId));
         assertThat(actualResponseBody.getImageUploadUrl())
                 .hasScheme("http")
                 .hasHost("localhost")
