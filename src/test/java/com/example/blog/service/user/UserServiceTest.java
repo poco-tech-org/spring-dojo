@@ -6,6 +6,7 @@ import com.example.blog.config.S3PresignerConfig;
 import com.example.blog.config.S3Properties;
 import com.example.blog.repository.file.FileRepository;
 import com.example.blog.repository.user.UserRepository;
+import com.example.blog.security.LoggedInUser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,13 +95,27 @@ class UserServiceTest {
     @DisplayName("createProfileImageUploadURL: プロフィール画像登録の URL が生成されること")
     void createProfileImageUploadURL_success() {
         // ## Arrange ##
+        var loggedInUser = new LoggedInUser(
+                123L,
+                "test_username",
+                "test_password",
+                true
+        );
 
         // ## Act ##
-        var actual = cut.createProfileImageUploadURL("test.png", "image/png", 1024);
+        var actual = cut.createProfileImageUploadURL(
+                loggedInUser,
+                "test.png",
+                "image/png",
+                1024
+        );
 
         // ## Assert ##
         assertThat(actual).isNotNull();
-        assertThat(actual.imagePath()).isNotNull();
+        assertThat(actual.imagePath())
+                .isEqualTo(
+                        "users/%d/profile-image.png".formatted(loggedInUser.getUserId())
+                );
         assertThat(actual.uploadURL()).isNotNull();
     }
 
