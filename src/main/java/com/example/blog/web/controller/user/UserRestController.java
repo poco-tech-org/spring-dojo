@@ -29,9 +29,13 @@ public class UserRestController implements UsersApi {
 
     @Override
     public ResponseEntity<UserDTO> getCurrentUser() {
+        var loggedInUser = (LoggedInUser) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
         var userDTO = new UserDTO()
                 .id(1L) // 仮実装: 固定値
-                .username("test_username1")
+                .username(loggedInUser.getUsername())
                 .imagePath("dummy"); // 仮実装: ダミー値 ref. UserService#createProfileImageUploadURL
         return ResponseEntity.ok(userDTO);
     }

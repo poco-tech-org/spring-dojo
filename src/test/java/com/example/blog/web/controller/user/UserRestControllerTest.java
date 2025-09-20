@@ -1,5 +1,6 @@
 package com.example.blog.web.controller.user;
 
+import com.example.blog.security.LoggedInUser;
 import com.example.blog.service.user.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -7,14 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -22,9 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 class UserRestControllerTest {
-
-    private static final String MOCK_USERNAME = "user1";
-
+    
     @Autowired
     private MockMvc mockMvc;
     @Autowired
@@ -36,19 +35,29 @@ class UserRestControllerTest {
     }
 
     @Test
-    @DisplayName("/users/me: ログイン済みユーザーがアクセスすると、200 OK でユーザー名を返す")
-    @WithMockUser(username = MOCK_USERNAME)
+    @DisplayName("/users/me: ログイン済みユーザーがアクセスすると、200 OK でユーザー情報を返す")
     public void usersMe_return200() throws Exception {
         // ## Arrange ##
+        var loggedInUser = new LoggedInUser(
+                1L,
+                "test_username1",
+                "test_password1",
+                true
+        );
 
         // ## Act ##
-        var actual = mockMvc.perform(MockMvcRequestBuilders.get("/users/me"));
+        var actual = mockMvc.perform(
+                get("/users/me")
+                        .with(user(loggedInUser))
+        );
 
         // ## Assert ##
         actual
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value(MOCK_USERNAME));
-
+                .andExpect(jsonPath("$.id").value(loggedInUser.getUserId()))
+                .andExpect(jsonPath("$.username").value(loggedInUser.getUsername()))
+                .andExpect(jsonPath("$.imagePath").value("dummy"))
+        ;
     }
 
     @Test
@@ -57,7 +66,7 @@ class UserRestControllerTest {
         // ## Arrange ##
 
         // ## Act ##
-        var actual = mockMvc.perform(MockMvcRequestBuilders.get("/users/me"));
+        var actual = mockMvc.perform(get("/users/me"));
 
         // ## Assert ##
         actual.andExpect(status().isUnauthorized());
