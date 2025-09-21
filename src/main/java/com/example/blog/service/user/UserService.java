@@ -3,6 +3,7 @@ package com.example.blog.service.user;
 import com.example.blog.repository.file.FileRepository;
 import com.example.blog.repository.user.UserRepository;
 import com.example.blog.security.LoggedInUser;
+import com.example.blog.service.exception.ResourceNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -56,5 +57,10 @@ public class UserService {
         //userToUpdate.setImagePath(); // TODO
         userRepository.update(userToUpdate);
         return userToUpdate;
+    }
+
+    public UserEntity findByUsername(String username) {
+        return userRepository.selectByUsername(username)
+                .orElseThrow(ResourceNotFoundException::new);
     }
 }

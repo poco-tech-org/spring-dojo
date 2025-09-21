@@ -19,6 +19,7 @@ public interface UserRepository {
               , u.username
               , u.password
               , u.enabled
+              , concat('users/', id, '/profile-image.png') AS imagePath
             FROM users u
             WHERE u.username = #{username}
             """)

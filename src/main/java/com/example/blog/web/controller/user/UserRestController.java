@@ -33,10 +33,11 @@ public class UserRestController implements UsersApi {
                 .getContext()
                 .getAuthentication()
                 .getPrincipal();
+        var user = userService.findByUsername(loggedInUser.getUsername());
         var userDTO = new UserDTO()
-                .id(1L) // 仮実装: 固定値
-                .username(loggedInUser.getUsername())
-                .imagePath("dummy"); // 仮実装: ダミー値 ref. UserService#createProfileImageUploadURL
+                .id(user.getId())
+                .username(user.getUsername())
+                .imagePath(user.getImagePath());
         return ResponseEntity.ok(userDTO);
     }
 
