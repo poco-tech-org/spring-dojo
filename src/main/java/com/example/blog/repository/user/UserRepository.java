@@ -19,7 +19,7 @@ public interface UserRepository {
               , u.username
               , u.password
               , u.enabled
-              , concat('users/', id, '/profile-image.png') AS imagePath
+              , u.image_path AS imagePath
             FROM users u
             WHERE u.username = #{username}
             """)
@@ -44,6 +44,7 @@ public interface UserRepository {
             SET
                 password = #{password}
               , enabled  = #{enabled}
+              , image_path = #{imagePath}
             WHERE
                 id = #{id}
             """)
