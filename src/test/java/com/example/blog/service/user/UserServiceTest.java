@@ -119,4 +119,68 @@ class UserServiceTest {
         assertThat(actual.uploadURL()).isNotNull();
     }
 
+    @Test
+    @DisplayName("delete: 存在するユーザーを削除できること")
+    void delete_success_existingUser() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(null, "test_username1", "test_password", true);
+        userRepository.insert(existingUser1);
+
+        var existingUser2 = new UserEntity(null, "test_username2", "test_password", true);
+        userRepository.insert(existingUser2);
+
+        // ## Act ##
+        cut.delete(existingUser1.getUsername());
+
+        // ## Assert ##
+        assertThat(userRepository.selectByUsername(existingUser1.getUsername()))
+                .isEmpty();
+        assertThat(userRepository.selectByUsername(existingUser2.getUsername()))
+                .contains(existingUser2);
+    }
+
+    @Test
+    @DisplayName("delete: 存在しないユーザーを削除しても例外が発生せずに処理が完了し、全件削除にならないこと")
+    void delete_success_nonExistingUser() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(null, "test_username1", "test_password", true);
+        userRepository.insert(existingUser1);
+
+        // ## Act ##
+        cut.delete("non_existing_username");
+
+        // ## Assert ##
+        assertThat(userRepository.selectByUsername(existingUser1.getUsername()))
+                .contains(existingUser1);
+    }
+
+    @Test
+    @DisplayName("delete: nullのユーザー名を指定しても全件削除にならないこと")
+    void delete_withNullUsername() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(null, "test_username1", "test_password", true);
+        userRepository.insert(existingUser1);
+
+        // ## Act ##
+        cut.delete(null);
+
+        // ## Assert ##
+        assertThat(userRepository.selectByUsername(existingUser1.getUsername()))
+                .contains(existingUser1);
+    }
+
+    @Test
+    @DisplayName("delete: 空文字のユーザー名を指定しても全件削除にならないこと")
+    void delete_withEmptyUsername() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(null, "test_username1", "test_password", true);
+        userRepository.insert(existingUser1);
+
+        // ## Act ##
+        cut.delete(null);
+
+        // ## Assert ##
+        assertThat(userRepository.selectByUsername(existingUser1.getUsername()))
+                .contains(existingUser1);
+    }
 }
