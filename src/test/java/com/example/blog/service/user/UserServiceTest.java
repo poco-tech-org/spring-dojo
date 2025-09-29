@@ -10,6 +10,9 @@ import com.example.blog.security.LoggedInUser;
 import com.example.blog.service.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -269,4 +272,66 @@ class UserServiceTest {
                 .isInstanceOf(ResourceNotFoundException.class);
     }
 
+    @Test
+    @DisplayName("updateProfileImage: 存在するユーザーの画像パスを更新できること")
+    void updateProfileImage_success() {
+        // ## Arrange ##
+        var existingUser = new UserEntity(
+                null,
+                "test_update_user",
+                "test_password",
+                true,
+                null
+        );
+        userRepository.insert(existingUser);
+
+        var existingUserImagePath = "users/" + existingUser.getId() + "/profile-image.png";
+
+        // ## Act ##
+        var actual = cut.updateProfileImage(existingUser.getUsername(), existingUserImagePath);
+
+        // ## Assert ##
+        var expectedUser = new UserEntity(
+                existingUser.getId(),
+                existingUser.getUsername(),
+                existingUser.getPassword(),
+                existingUser.isEnabled(),
+                existingUserImagePath
+        );
+        assertThat(actual).isEqualTo(expectedUser);
+        assertThat(userRepository.selectByUsername(existingUser.getUsername()))
+                .contains(expectedUser);
+    }
+
+    @Test
+    @DisplayName("updateProfileImage: 存在しないユーザーを指定した場合、ResourceNotFoundExceptionが発生すること")
+    void updateProfileImage_throwException_userNotFound() {
+        // ## Arrange ##
+
+        // ## Act ##
+        // ## Assert ##
+        assertThatThrownBy(() -> cut.updateProfileImage("non_existing_user", "dummy_image_path"))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @ParameterizedTest
+    @DisplayName("updateProfileImage: 存在しない画像パスが指定されたとき、ResourceNotFoundException が発生すること")
+    @NullSource
+    @ValueSource(strings = {"", " ", "non_existing_path"})
+    void updateProfileImage_throwException_invalidImagePath(String invalidImagePath) {
+        // ## Arrange ##
+        var existingUser = new UserEntity(
+                null,
+                "test_update_user",
+                "test_password",
+                true,
+                null
+        );
+        userRepository.insert(existingUser);
+
+        // ## Act ##
+        // ## Assert ##
+        assertThatThrownBy(() -> cut.updateProfileImage(existingUser.getUsername(), invalidImagePath))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
 }
