@@ -27,8 +27,8 @@ public interface UserRepository {
 
 
     @Insert("""
-            INSERT INTO users (username, password, enabled)
-            VALUES (#{username}, #{password}, #{enabled})
+            INSERT INTO users (username, password, enabled, image_path)
+            VALUES (#{username}, #{password}, #{enabled}, #{imagePath})
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     void insert(UserEntity entity);

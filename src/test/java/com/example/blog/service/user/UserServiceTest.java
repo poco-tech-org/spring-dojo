@@ -7,6 +7,7 @@ import com.example.blog.config.S3Properties;
 import com.example.blog.repository.file.FileRepository;
 import com.example.blog.repository.user.UserRepository;
 import com.example.blog.security.LoggedInUser;
+import com.example.blog.service.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @MybatisDefaultDatasourceTest
 @Import({
@@ -183,4 +185,88 @@ class UserServiceTest {
         assertThat(userRepository.selectByUsername(existingUser1.getUsername()))
                 .contains(existingUser1);
     }
+
+    @Test
+    @DisplayName("findByUsername: 存在するユーザーを取得できること")
+    void findByUsername_success() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(
+                null,
+                "test_username_1",
+                "test_password_1",
+                true,
+                "users/1/profile-image.png"
+        );
+        userRepository.insert(existingUser1);
+
+        var existingUser2 = new UserEntity(
+                null,
+                "test_username_2",
+                "test_password_2",
+                true,
+                "users/2/profile-image.png"
+        );
+        userRepository.insert(existingUser2);
+
+        // ## Act ##
+        var actual = cut.findByUsername(existingUser1.getUsername());
+
+        // ## Assert ##
+        assertThat(actual).isEqualTo(existingUser1);
+    }
+
+    @Test
+    @DisplayName("findByUsername: 存在しないユーザーを指定した場合、ResourceNotFoundExceptionが発生すること")
+    void findByUsername_throwException_userNotFound() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(
+                null,
+                "test_username_1",
+                "test_password_1",
+                true,
+                "users/1/profile-image.png"
+        );
+        userRepository.insert(existingUser1);
+
+        // ## Act & Assert ##
+        assertThatThrownBy(() -> cut.findByUsername("non_existing_username"))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("findByUsername: nullのユーザー名を指定した場合、適切な例外が発生すること")
+    void findByUsername_throwException_nullUsername() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(
+                null,
+                "test_username_1",
+                "test_password_1",
+                true,
+                "users/1/profile-image.png"
+        );
+        userRepository.insert(existingUser1);
+
+        // ## Act & Assert ##
+        assertThatThrownBy(() -> cut.findByUsername(null))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("findByUsername: 空文字のユーザー名を指定した場合、ResourceNotFoundExceptionが発生すること")
+    void findByUsername_throwException_emptyUsername() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(
+                null,
+                "test_username_1",
+                "test_password_1",
+                true,
+                "users/1/profile-image.png"
+        );
+        userRepository.insert(existingUser1);
+
+        // ## Act & Assert ##
+        assertThatThrownBy(() -> cut.findByUsername(""))
+                .isInstanceOf(ResourceNotFoundException.class);
+    }
+
 }
