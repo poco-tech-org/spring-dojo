@@ -2,7 +2,7 @@ package com.example.blog.service.user;
 
 import com.example.blog.config.MybatisDefaultDatasourceTest;
 import com.example.blog.config.PasswordEncoderConfig;
-import com.example.blog.config.S3PresignerConfig;
+import com.example.blog.config.S3Config;
 import com.example.blog.config.S3Properties;
 import com.example.blog.repository.file.FileRepository;
 import com.example.blog.repository.user.UserRepository;
@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         UserService.class,
         PasswordEncoderConfig.class,
         FileRepository.class,
-        S3PresignerConfig.class,
+        S3Config.class,
 })
 @EnableConfigurationProperties(S3Properties.class)
 class UserServiceTest {
