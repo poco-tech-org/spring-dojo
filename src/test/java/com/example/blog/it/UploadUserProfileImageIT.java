@@ -1,7 +1,6 @@
 package com.example.blog.it;
 
 import com.example.blog.config.S3Properties;
-import com.example.blog.config.TestS3ClientConfig;
 import com.example.blog.model.UserDTO;
 import com.example.blog.model.UserProfileImageUploadURLDTO;
 import com.example.blog.service.user.UserService;
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -29,7 +27,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestS3ClientConfig.class)
 public class UploadUserProfileImageIT {
 
     private static final String TEST_USERNAME = "test_username1";
@@ -46,7 +43,7 @@ public class UploadUserProfileImageIT {
     @Autowired
     private S3Properties s3Properties;
     @Autowired
-    private S3Client testS3Client;
+    private S3Client s3Client;
 
     @BeforeEach
     public void beforeEach() {
@@ -61,7 +58,7 @@ public class UploadUserProfileImageIT {
     }
 
     private void deleteImage(String fileName) {
-        testS3Client.deleteObject(builder -> builder
+        s3Client.deleteObject(builder -> builder
                 .bucket(s3Properties.bucket().profileImages())
                 .key(fileName)
                 .build()
@@ -292,7 +289,7 @@ public class UploadUserProfileImageIT {
                 .bucket(s3Properties.bucket().profileImages())
                 .key(TEST_IMAGE_FILE_NAME)
                 .build();
-        var response = testS3Client.getObject(request);
+        var response = s3Client.getObject(request);
         var actualImages = response.readAllBytes();
         assertThat(actualImages).isEqualTo(imageBytes);
     }
@@ -321,7 +318,7 @@ public class UploadUserProfileImageIT {
                 .bucket(s3Properties.bucket().profileImages())
                 .key(TEST_IMAGE_FILE_NAME)
                 .build();
-        assertThatThrownBy(() -> testS3Client.headObject(request))
+        assertThatThrownBy(() -> s3Client.headObject(request))
                 .isInstanceOf(NoSuchKeyException.class);
     }
 
@@ -350,7 +347,7 @@ public class UploadUserProfileImageIT {
                 .bucket(s3Properties.bucket().profileImages())
                 .key(TEST_IMAGE_FILE_NAME)
                 .build();
-        assertThatThrownBy(() -> testS3Client.headObject(request))
+        assertThatThrownBy(() -> s3Client.headObject(request))
                 .isInstanceOf(NoSuchKeyException.class);
     }
 
