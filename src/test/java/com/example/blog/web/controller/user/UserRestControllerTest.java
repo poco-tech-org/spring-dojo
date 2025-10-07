@@ -38,10 +38,11 @@ class UserRestControllerTest {
     @DisplayName("/users/me: ログイン済みユーザーがアクセスすると、200 OK でユーザー情報を返す")
     public void usersMe_return200() throws Exception {
         // ## Arrange ##
+        var registeredUser = userService.register("test_username1", "test_password1");
         var loggedInUser = new LoggedInUser(
-                1L,
-                "test_username1",
-                "test_password1",
+                registeredUser.getId(),
+                registeredUser.getUsername(),
+                registeredUser.getPassword(),
                 true
         );
 
@@ -56,7 +57,9 @@ class UserRestControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(loggedInUser.getUserId()))
                 .andExpect(jsonPath("$.username").value(loggedInUser.getUsername()))
-                .andExpect(jsonPath("$.imagePath").value("dummy"))
+                .andExpect(jsonPath("$.imagePath").value(nullValue()))
+                .andExpect(jsonPath("$.password").doesNotExist())
+                .andExpect(jsonPath("$", aMapWithSize(3)))
         ;
     }
 
