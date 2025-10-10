@@ -8,8 +8,7 @@ import com.example.blog.repository.file.FileRepository;
 import com.example.blog.repository.user.UserRepository;
 import com.example.blog.security.LoggedInUser;
 import com.example.blog.service.exception.ResourceNotFoundException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -17,6 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -29,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         S3Config.class,
 })
 @EnableConfigurationProperties(S3Properties.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserServiceTest {
 
     @Autowired
@@ -37,6 +41,50 @@ class UserServiceTest {
     private UserRepository userRepository;
     @Autowired
     private ApplicationContext ctx;
+    @Autowired
+    private S3Client s3Client;
+    @Autowired
+    private S3Properties s3Properties;
+
+    @BeforeAll
+    void setUpBucket() {
+        try {
+            s3Client.headBucket(builder -> builder
+                    .bucket(s3Properties.bucket().profileImages())
+            );
+        } catch (NoSuchBucketException e) {
+            s3Client.createBucket(builder -> builder
+                    .bucket(s3Properties.bucket().profileImages())
+            );
+        }
+    }
+
+    @AfterAll
+    void tearDownBucket() {
+        var listResponse = s3Client.listObjectsV2(builder -> builder
+                .bucket(s3Properties.bucket().profileImages())
+                .build()
+        );
+
+        if (listResponse.contents().isEmpty()) {
+            return;
+        }
+
+        var objectIdentifiers = listResponse.contents().stream()
+                .map(s3Object -> ObjectIdentifier.builder()
+                        .key(s3Object.key())
+                        .build())
+                .toList();
+
+        s3Client.deleteObjects(builder -> builder
+                .bucket(s3Properties.bucket().profileImages())
+                .delete(delete -> delete.objects(objectIdentifiers))
+        );
+
+        s3Client.deleteBucket(builder -> builder
+                .bucket(s3Properties.bucket().profileImages())
+        );
+    }
 
     @Test
     void successAutowired() {
@@ -119,9 +167,14 @@ class UserServiceTest {
         assertThat(actual).isNotNull();
         assertThat(actual.imagePath())
                 .isEqualTo(
-                        "users/%d/profile-image.png".formatted(loggedInUser.getUserId())
+                        "users/%d/profile-image".formatted(loggedInUser.getUserId())
                 );
         assertThat(actual.uploadURL()).isNotNull();
+        assertThat(actual.uploadURL())
+                .hasScheme("http")
+                .hasHost("localhost")
+                .hasPort(4566)
+                .hasPath("/profile-images/users/%d/profile-image".formatted(loggedInUser.getUserId()));
     }
 
     @Test
@@ -285,7 +338,15 @@ class UserServiceTest {
         );
         userRepository.insert(existingUser);
 
-        var existingUserImagePath = "users/" + existingUser.getId() + "/profile-image.png";
+        var existingUserImagePath = "users/" + existingUser.getId() + "/profile-image";
+
+        s3Client.putObject(
+                builder -> builder
+                        .bucket(s3Properties.bucket().profileImages())
+                        .key(existingUserImagePath)
+                        .build(),
+                RequestBody.fromString("test image content")
+        );
 
         // ## Act ##
         var actual = cut.updateProfileImage(existingUser.getUsername(), existingUserImagePath);

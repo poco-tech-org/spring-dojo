@@ -15,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserService {
 
+    private static final String PROFILE_IMAGE_FIXED_FILE_NAME = "profile-image";
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final FileRepository fileRepository;
@@ -43,12 +45,12 @@ public class UserService {
             String contentType,
             long contentLength
     ) {
+        var imagePath = "users/" + loggedInUser.getUserId() + "/" + PROFILE_IMAGE_FIXED_FILE_NAME;
         var uploadURL = fileRepository.createUploadURL(
-                fileName,
+                imagePath,
                 contentType,
                 contentLength
         );
-        var imagePath = "users/" + loggedInUser.getUserId() + "/profile-image.png";
         return new ProfileImageUpload(uploadURL, imagePath);
     }
 
