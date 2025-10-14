@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:apidb}
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:apidb}?serverTimezone=Asia/Tokyo
     username: ${DB_USER:apiuser}
     password: ${DB_PASS:apipass}
   data:
