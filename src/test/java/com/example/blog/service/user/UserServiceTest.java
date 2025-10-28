@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
@@ -45,6 +47,12 @@ class UserServiceTest {
     private S3Client s3Client;
     @Autowired
     private S3Properties s3Properties;
+
+    @DynamicPropertySource
+    static void overrideS3BucketName(DynamicPropertyRegistry registry) {
+        String bucketName = UserServiceTest.class.getName().toLowerCase().replace(".", "-");
+        registry.add("aws.s3.bucket.profile-images", () -> bucketName);
+    }
 
     @BeforeAll
     void setUpBucket() {
@@ -174,7 +182,10 @@ class UserServiceTest {
                 .hasScheme("http")
                 .hasHost("localhost")
                 .hasPort(4566)
-                .hasPath("/profile-images/users/%d/profile-image".formatted(loggedInUser.getUserId()));
+                .hasPath("/%s/users/%d/profile-image".formatted(
+                        s3Properties.bucket().profileImages(),
+                        loggedInUser.getUserId())
+                );
     }
 
     @Test
