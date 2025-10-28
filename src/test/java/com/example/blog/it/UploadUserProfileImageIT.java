@@ -83,7 +83,7 @@ public class UploadUserProfileImageIT {
         );
 
         // S3へのファイルアップロード
-        uploadImage(uploadUrlDTO.getImageUploadUrl(), MediaType.IMAGE_PNG);
+        uploadImage(uploadUrlDTO.getImageUploadUrl(), MediaType.IMAGE_PNG, registeredUser.getId());
 
         // ファイルパスの登録
         updateUserProfileImage(sessionId, uploadUrlDTO.getImagePath(), xsrfToken);
@@ -252,12 +252,12 @@ public class UploadUserProfileImageIT {
 
         assertThat(actualResponseBody).isNotNull();
         assertThat(actualResponseBody.getImagePath())
-                .isEqualTo("users/%d/profile-image.png".formatted(userId));
+                .isEqualTo("users/%d/profile-image".formatted(userId));
         assertThat(actualResponseBody.getImageUploadUrl())
                 .hasScheme("http")
                 .hasHost("localhost")
                 .hasPort(4566)
-                .hasPath("/profile-images/" + TEST_IMAGE_FILE_NAME)
+                .hasPath("/profile-images/users/%d/profile-image".formatted(userId))
                 .hasParameter("X-Amz-Expires", "600")
                 .hasParameter("X-Amz-Signature")
         ;
@@ -267,7 +267,8 @@ public class UploadUserProfileImageIT {
 
     private void uploadImage(
             URI imageUploadUrl,
-            MediaType contentType
+            MediaType contentType,
+            long userId
     ) throws IOException {
         // ## Arrange ##
         var imageResource = new ClassPathResource(TEST_IMAGE_FILE_NAME);
@@ -287,7 +288,7 @@ public class UploadUserProfileImageIT {
         // S3 にファイルがアップロードされているか
         var request = GetObjectRequest.builder()
                 .bucket(s3Properties.bucket().profileImages())
-                .key(TEST_IMAGE_FILE_NAME)
+                .key("users/%d/profile-image".formatted(userId))
                 .build();
         var response = s3Client.getObject(request);
         var actualImages = response.readAllBytes();
