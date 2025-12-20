@@ -162,6 +162,24 @@ paths:
           $ref: "#/components/responses/UnauthorizedResponse"
         '500':
           $ref: "#/components/responses/InternalServerErrorResponse"
+  /users/me:
+    get:
+      description: ログイン中のユーザー情報を取得します
+      tags: [ users ]
+      operationId: getCurrentUser
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDTO"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '500':
+          $ref: "#/components/responses/InternalServerErrorResponse"
   /users/me/image:
     put:
       description: |
@@ -506,6 +524,9 @@ components:
           example: password123
     UserDTO:
       type: object
+      required:
+        - id
+        - username
       properties:
         id:
           type: integer
@@ -514,6 +535,9 @@ components:
         username:
           type: string
           example: username123
+        imagePath:
+          type: string
+          example: "users/123/profile-image"
     UserProfileImageUploadURLDTO:
       type: object
       properties:
