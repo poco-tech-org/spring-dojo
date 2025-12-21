@@ -2,6 +2,7 @@ package com.example.blog.service.user;
 
 import com.example.blog.repository.file.FileRepository;
 import com.example.blog.repository.user.UserRepository;
+import com.example.blog.security.LoggedInUser;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,12 +36,14 @@ public class UserService {
     }
 
     public ProfileImageUpload createProfileImageUploadURL(
+            LoggedInUser loggedInUser,
             String fileName,
             String contentType,
             long contentLength
     ) {
         var uploadURL = fileRepository.createUploadURL(fileName, contentType, contentLength);
-        return new ProfileImageUpload(uploadURL, "dummy");
+        var imagePath = "users/%d/profile-image".formatted(loggedInUser.getUserId());
+        return new ProfileImageUpload(uploadURL, imagePath);
     }
 
     public UserEntity updateProfileImage(String username, @NotNull String imagePath) {

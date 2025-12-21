@@ -47,7 +47,16 @@ public class UserRestController implements UsersApi {
             String contentType,
             Long contentLength
     ) {
-        var uploadURL = userService.createProfileImageUploadURL(fileName, contentType, contentLength);
+        var loggedInUser = (LoggedInUser) SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getPrincipal();
+        var uploadURL = userService.createProfileImageUploadURL(
+                loggedInUser,
+                fileName,
+                contentType,
+                contentLength
+        );
         var dto = new UserProfileImageUploadURLDTO()
                 .imagePath(uploadURL.imagePath())
                 .imageUploadUrl(uploadURL.uploadURL());
