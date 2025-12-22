@@ -6,6 +6,7 @@ import com.example.blog.security.LoggedInUser;
 import com.example.blog.service.exception.ResourceNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,8 +50,13 @@ public class UserService {
 
     public UserEntity updateProfileImage(String username, @NotNull String imagePath) {
         var userToUpdate = userRepository.selectByUsername(username)
-                        .orElseThrow(() -> new IllegalArgumentException("User not found:" + username));
-        //userToUpdate.setImagePath(); // TODO
+                        .orElseThrow(ResourceNotFoundException::new);
+
+        if (Strings.isBlank(imagePath)) {
+            throw new ResourceNotFoundException();
+        }
+
+        userToUpdate.setImagePath(imagePath);
         userRepository.update(userToUpdate);
         return userToUpdate;
     }
