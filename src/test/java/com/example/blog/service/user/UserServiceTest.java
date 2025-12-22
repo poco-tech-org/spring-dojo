@@ -117,4 +117,72 @@ class UserServiceTest {
         assertThat(actual.uploadURL()).isNotNull();
     }
 
+    @Test
+    @DisplayName("delete: 存在するユーザーを削除できること")
+    void delete_success_existingUer() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(null, "test_username1", "test_password", true, null);
+        var existingUser2 = new UserEntity(null, "test_username2", "test_password", true, null);
+        userRepository.insert(existingUser1);
+        userRepository.insert(existingUser2);
+
+        // ## Act ##
+        cut.delete(existingUser1.getUsername());
+
+        // ## Assert ##
+        assertThat(userRepository.selectByUsername(existingUser1.getUsername())).isEmpty();
+        assertThat(userRepository.selectByUsername(existingUser2.getUsername())).contains(existingUser2);
+    }
+
+    @Test
+    @DisplayName("delete: 存在しないユーザーを指定しても例外が発生せず処理が終了し、ほかのユーザーの削除もされない")
+    void delete_success_nonExistingUser() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(null, "test_username1", "test_password", true, null);
+        var existingUser2 = new UserEntity(null, "test_username2", "test_password", true, null);
+        userRepository.insert(existingUser1);
+        userRepository.insert(existingUser2);
+
+        // ## Act ##
+        cut.delete("test_username_999");
+
+        // ## Assert ##
+        assertThat(userRepository.selectByUsername(existingUser1.getUsername())).contains(existingUser1);
+        assertThat(userRepository.selectByUsername(existingUser2.getUsername())).contains(existingUser2);
+    }
+
+
+    @Test
+    @DisplayName("delete: ユーザー名として null が指定されたとき全件削除にならないこと")
+    void delete_withNullUsername() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(null, "test_username1", "test_password", true, null);
+        var existingUser2 = new UserEntity(null, "test_username2", "test_password", true, null);
+        userRepository.insert(existingUser1);
+        userRepository.insert(existingUser2);
+
+        // ## Act ##
+        cut.delete(null);
+
+        // ## Assert ##
+        assertThat(userRepository.selectByUsername(existingUser1.getUsername())).contains(existingUser1);
+        assertThat(userRepository.selectByUsername(existingUser2.getUsername())).contains(existingUser2);
+    }
+
+    @Test
+    @DisplayName("delete: ユーザー名として空文字が指定されたとき全件削除にならないこと")
+    void delete_withEmptyUsername() {
+        // ## Arrange ##
+        var existingUser1 = new UserEntity(null, "test_username1", "test_password", true, null);
+        var existingUser2 = new UserEntity(null, "test_username2", "test_password", true, null);
+        userRepository.insert(existingUser1);
+        userRepository.insert(existingUser2);
+
+        // ## Act ##
+        cut.delete("");
+
+        // ## Assert ##
+        assertThat(userRepository.selectByUsername(existingUser1.getUsername())).contains(existingUser1);
+        assertThat(userRepository.selectByUsername(existingUser2.getUsername())).contains(existingUser2);
+    }
 }
