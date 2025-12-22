@@ -1,6 +1,7 @@
 package com.example.blog.repository.file;
 
 import com.example.blog.config.S3Properties;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,5 +47,9 @@ public class FileRepository {
             log.error("Failed to convert URL [{}] to URI", presignedRequest.url(), e);
             throw new IllegalStateException("Failed to convert presigned URL to URI", e);
         }
+    }
+
+    public boolean exists(@NotNull String imagePath) {
+        return !imagePath.equals("non_existing_image_path"); // TODO
     }
 }
