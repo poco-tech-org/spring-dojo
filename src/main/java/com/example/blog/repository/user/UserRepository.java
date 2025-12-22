@@ -19,7 +19,7 @@ public interface UserRepository {
               , u.username
               , u.password
               , u.enabled
-              , concat('users/', id, '/profile-image') AS imagePath
+              , u.image_path AS imagePath
             FROM users u
             WHERE u.username = #{username}
             """)
@@ -27,8 +27,8 @@ public interface UserRepository {
 
 
     @Insert("""
-            INSERT INTO users (username, password, enabled)
-            VALUES (#{username}, #{password}, #{enabled})
+            INSERT INTO users (username, password, enabled, image_path)
+            VALUES (#{username}, #{password}, #{enabled}, #{imagePath})
             """)
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     void insert(UserEntity entity);
@@ -42,8 +42,9 @@ public interface UserRepository {
     @Update("""
             UPDATE users
             SET
-                password = #{password}
-              , enabled  = #{enabled}
+                password   = #{password}
+              , enabled    = #{enabled}
+              , image_path = #{imagePath}
             WHERE
                 id = #{id}
             """)
