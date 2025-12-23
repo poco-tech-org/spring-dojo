@@ -4,7 +4,10 @@ import com.example.blog.config.S3Properties;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
@@ -21,6 +24,7 @@ public class FileRepository {
     private static final int SIGNATURE_DURATION_MINUTES = 10;
     private final S3Properties s3Properties;
     private final S3Presigner s3Presigner;
+    private final S3Client s3Client;
 
     public URI createUploadURL(
             String fileName,
@@ -50,6 +54,20 @@ public class FileRepository {
     }
 
     public boolean exists(@NotNull String imagePath) {
-        return !imagePath.equals("non_existing_image_path"); // TODO
+        if (Strings.isBlank(imagePath)) {
+            return false;
+        }
+        try {
+            s3Client.headObject(builder -> builder
+                    .bucket(s3Properties.bucket().profileImages())
+                    .key(imagePath)
+            );
+            return true;
+        } catch (NoSuchKeyException e) {
+            return false;
+        } catch (Exception e) {
+            log.error("Failed to check existence of image [{}]", imagePath, e);
+            throw new IllegalStateException("Failed to check existence of image", e);
+        }
     }
 }
