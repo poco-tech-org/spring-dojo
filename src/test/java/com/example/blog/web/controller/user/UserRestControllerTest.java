@@ -1,6 +1,8 @@
 package com.example.blog.web.controller.user;
 
+import com.example.blog.repository.user.UserRepository;
 import com.example.blog.security.LoggedInUser;
+import com.example.blog.service.user.UserEntity;
 import com.example.blog.service.user.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -8,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,8 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -26,12 +27,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class UserRestControllerTest {
 
-    private static final String MOCK_USERNAME = "user1";
-
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private UserService userService;
+    @Autowired
+    private UserRepository userRepository;
 
     @Test
     public void mockMvc() {
@@ -40,14 +41,30 @@ class UserRestControllerTest {
 
     @Test
     @DisplayName("/users/me: ログイン済みユーザーがアクセスすると、200 OK でユーザー名を返す")
-    @WithMockUser(username = MOCK_USERNAME)
     public void usersMe_return200() throws Exception {
         // ## Arrange ##
-        var loggedInUser = new LoggedInUser(
-          123L,
-          "test_username1",
+        var user1 = new UserEntity(
+          null,
+          "tets_username1",
           "test_password1",
-          true
+          true,
+          "test_imagePath1"
+        );
+        var user2 = new UserEntity(
+          null,
+          "tets_username2",
+          "test_password2",
+          true,
+          "test_imagePath2"
+        );
+        userRepository.insert(user1);
+        userRepository.insert(user2);
+
+        var loggedInUser = new LoggedInUser(
+                user1.getId(),
+                user1.getUsername(),
+                user1.getPassword(),
+                user1.isEnabled()
         );
 
         // ## Act ##
@@ -60,9 +77,9 @@ class UserRestControllerTest {
         // ## Assert ##
         actual
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(loggedInUser.getUserId()))
-                .andExpect(jsonPath("$.username").value(loggedInUser.getUsername()))
-                .andExpect(jsonPath("$.imagePath").value("dummy"))
+                .andExpect(jsonPath("$.id").value(user1.getId()))
+                .andExpect(jsonPath("$.username").value(user1.getUsername()))
+                .andExpect(jsonPath("$.imagePath").value(user1.getImagePath()))
         ;
     }
 
