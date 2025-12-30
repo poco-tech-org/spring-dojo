@@ -1,9 +1,6 @@
 package com.example.blog.service.user;
 
-import com.example.blog.config.MybatisDefaultDatasourceTest;
-import com.example.blog.config.PasswordEncoderConfig;
-import com.example.blog.config.S3PresignerConfig;
-import com.example.blog.config.S3Properties;
+import com.example.blog.config.*;
 import com.example.blog.repository.file.FileRepository;
 import com.example.blog.repository.user.UserRepository;
 import com.example.blog.security.LoggedInUser;
@@ -17,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -27,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         PasswordEncoderConfig.class,
         FileRepository.class,
         S3PresignerConfig.class,
+        S3ClientConfig.class,
 })
 @EnableConfigurationProperties(S3Properties.class)
 class UserServiceTest {
@@ -37,6 +37,10 @@ class UserServiceTest {
     private UserRepository userRepository;
     @Autowired
     private ApplicationContext ctx;
+    @Autowired
+    private S3Client s3Client;
+    @Autowired
+    private S3Properties s3Properties;
 
     @Test
     void successAutowired() {
@@ -262,6 +266,13 @@ class UserServiceTest {
         userRepository.insert(existingUser2);
 
         var existingUserImagePath = "users/" + existingUser1.getId() + "/profile-image";
+
+        s3Client.putObject(builder -> builder
+                .bucket(s3Properties.bucket().profileImages())
+                .key(existingUserImagePath)
+                .build(),
+                RequestBody.fromString("test")
+        );
 
         // ## Act ##
         var actual = cut.updateProfileImage(existingUser1.getUsername(), existingUserImagePath);
