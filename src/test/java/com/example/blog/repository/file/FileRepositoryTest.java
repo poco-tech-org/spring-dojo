@@ -1,8 +1,8 @@
 package com.example.blog.repository.file;
 
+import com.example.blog.config.S3ClientConfig;
 import com.example.blog.config.S3PresignerConfig;
 import com.example.blog.config.S3Properties;
-import com.example.blog.config.TestS3ClientConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,7 +11,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -21,12 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringJUnitConfig(
         classes = {
                 FileRepository.class,
-                S3PresignerConfig.class
+                S3PresignerConfig.class,
+                S3ClientConfig.class,
         },
         initializers = ConfigDataApplicationContextInitializer.class
 )
 @EnableConfigurationProperties(S3Properties.class)
-@Import(TestS3ClientConfig.class)
 class FileRepositoryTest {
 
     @Autowired
