@@ -43,8 +43,8 @@ public class UserService {
             String contentType,
             long contentLength
     ) {
-        var uploadURL = fileRepository.createUploadURL(fileName, contentType, contentLength);
         var imagePath = "users/%d/profile-image".formatted(loggedInUser.getUserId());
+        var uploadURL = fileRepository.createUploadURL(imagePath, contentType, contentLength);
         return new ProfileImageUpload(uploadURL, imagePath);
     }
 
